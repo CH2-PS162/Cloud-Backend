@@ -1,72 +1,81 @@
-const AssignmentsModel = require('../models/assignments');
+// assignments.js (in models directory)
 
-const getAllAssignments = (req, res) => {
-  try {
-    const allAssignments = AssignmentsModel.getAllAssignments();
+let nanoid;
 
-    if (!allAssignments || allAssignments.length === 0) {
-      return res.status(404).json({
-        status: 'fail',
-        message: 'No assignments found or assignment database is empty',
-      });
-    }
+(async () => {
+    const nanoidModule = await import('nanoid');
+    nanoid = nanoidModule.nanoid;
+  })();
 
-    return res.status(200).json({
-      status: 'success',
-      data: {
-        assignments: allAssignments,
-      },
-    });
-  } catch (error) {
-    console.error('Error retrieving assignments:', error);
-    return res.status(500).json({
-      status: 'error',
-      message: 'Failed to retrieve assignments. An internal server error occurred.',
-    });
-  }
+
+let assignments = [];
+
+const generateAssignmentID = () => {
+  return nanoid(8); // Generating a unique 8-character ID using nanoid
 };
 
-const createAssignment = (req, res) => {
-  try {
-    const { courseId, title, description, deadline, createdBy } = req.body;
+const getAllAssignments = () => {
+  if (!assignments || !Array.isArray(assignments)) {
+    throw new Error('Assignment data is invalid or unavailable');
+  }
 
-    if (!courseId || !title || !description || !deadline || !createdBy) {
-      return res.status(400).json({
-        status: 'fail',
-        message: 'Please provide all necessary assignment details',
-      });
+  if (assignments.length === 0) {
+    return null;
+  }
+
+  return assignments;
+};
+
+const addAssignment = ({ title, description, dueDate, courseId }) => {
+  const newAssignment = {
+    assignmentId: generateAssignmentID(),
+    title,
+    description,
+    dueDate,
+    courseId,
+  };
+
+  assignments.push(newAssignment);
+  return newAssignment;
+};
+
+const isAssignmentOverdue = (assignmentId) => {
+    const assignment = assignments.find((assignment) => assignment.assignmentId === assignmentId);
+    if (assignment) {
+      const deadline = new Date(assignment.dueDate);
+      const currentDate = new Date();
+      return currentDate > deadline;
     }
+    return false; // If assignment not found, it's not overdue
+  };
 
-    // Assuming authentication is handled to get the createdBy user info
-    // Check if the user has permission to create an assignment for the course
+const deleteAssignment = (assignmentId) => {
+  const initialLength = assignments.length;
+  assignments = assignments.filter((assignment) => assignment.assignmentId !== assignmentId);
+  return assignments.length !== initialLength;
+};
 
-    const newAssignment = AssignmentsModel.createAssignment({
-      courseId,
+const updateAssignment = (assignmentId, { title, description, dueDate, courseId }) => {
+  const index = assignments.findIndex((assignment) => assignment.assignmentId === assignmentId);
+
+  if (index !== -1) {
+    assignments[index] = {
+      ...assignments[index],
       title,
       description,
-      deadline,
-      createdBy,
-    });
-
-    return res.status(201).json({
-      status: 'success',
-      message: 'Assignment created successfully',
-      data: {
-        assignment: newAssignment,
-      },
-    });
-  } catch (error) {
-    return res.status(500).json({
-      status: 'error',
-      message: 'Failed to create assignment',
-    });
+      dueDate,
+      courseId,
+    };
+    return assignments[index];
   }
+  return null;
 };
 
-// Other handlers: getAssignmentById, updateAssignment, deleteAssignment
-
 module.exports = {
+  generateAssignmentID,
   getAllAssignments,
-  createAssignment,
-  // Include other assignment handlers
+  addAssignment,
+  isAssignmentOverdue,
+  deleteAssignment,
+  updateAssignment,
 };

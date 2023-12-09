@@ -2,9 +2,9 @@
 
 const Assignments = require('../models/assignments');
 
-const getAllAssignments = (req, res) => {
+const getAllAssignments = async (req, res) => {
   try {
-    const allAssignments = Assignments.getAllAssignments();
+    const allAssignments = await Assignments.getAllAssignments();
     if (!allAssignments) {
       return res.status(404).json({ message: 'No assignments found' });
     }
@@ -14,20 +14,20 @@ const getAllAssignments = (req, res) => {
   }
 };
 
-const addAssignment = (req, res) => {
+const addAssignment = async (req, res) => {
   try {
     const { title, description, dueDate, courseId } = req.body;
-    const newAssignment = Assignments.addAssignment({ title, description, dueDate, courseId });
+    const newAssignment = await Assignments.addAssignment({ title, description, dueDate, courseId });
     return res.status(201).json(newAssignment);
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
 };
 
-const deleteAssignment = (req, res) => {
+const deleteAssignment = async (req, res) => {
   try {
     const { assignmentId } = req.params;
-    const isDeleted = Assignments.deleteAssignment(assignmentId);
+    const isDeleted = await Assignments.deleteAssignment(assignmentId);
     if (isDeleted) {
       return res.status(200).json({ message: 'Assignment deleted successfully' });
     }
@@ -37,11 +37,11 @@ const deleteAssignment = (req, res) => {
   }
 };
 
-const updateAssignment = (req, res) => {
+const updateAssignment = async (req, res) => {
   try {
     const { assignmentId } = req.params;
     const { title, description, dueDate, courseId } = req.body;
-    const updatedAssignment = Assignments.updateAssignment(assignmentId, { title, description, dueDate, courseId });
+    const updatedAssignment = await Assignments.updateAssignment(assignmentId, { title, description, dueDate, courseId });
     if (updatedAssignment) {
       return res.status(200).json(updatedAssignment);
     }
@@ -51,9 +51,20 @@ const updateAssignment = (req, res) => {
   }
 };
 
+const checkAssignmentOverdue = async (req, res) => {
+  try {
+    const { assignmentId } = req.params;
+    const overdue = await Assignments.isAssignmentOverdue(assignmentId);
+    return res.status(200).json({ overdue });
+  } catch (error) {
+    return res.status(500).json({ error: 'Failed to check if assignment is overdue' });
+  }
+};
+
 module.exports = {
   getAllAssignments,
   addAssignment,
   deleteAssignment,
   updateAssignment,
+  checkAssignmentOverdue,
 };

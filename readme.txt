@@ -48,6 +48,8 @@ SETUP
   1. Setup: Install dependencies with npm install.
   npm install nanoid
   npm install express
+  npm install mysql2
+  npm install nanoid@^3.0.0
   
   2. Start Server: Run the server with node server.js.
   

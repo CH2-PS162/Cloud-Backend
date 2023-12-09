@@ -1,81 +1,101 @@
 // assignments.js (in models directory)
 
-let nanoid;
+const { nanoid: generateAssignmentID } = require('nanoid');
+const db = require('../database/db');
 
-(async () => {
-    const nanoidModule = await import('nanoid');
-    nanoid = nanoidModule.nanoid;
-  })();
-
-
-let assignments = [];
-
-const generateAssignmentID = () => {
-  return nanoid(8); // Generating a unique 8-character ID using nanoid
-};
-
-const getAllAssignments = () => {
-  if (!assignments || !Array.isArray(assignments)) {
-    throw new Error('Assignment data is invalid or unavailable');
+// Function to get all assignments
+const getAllAssignments = async () => {
+  const connection = await db.getConnection();
+  try {
+    const [rows] = await connection.execute('SELECT * FROM assignments');
+    return rows;
+  } catch (error) {
+    console.error('Error retrieving assignments:', error);
+    throw new Error('Failed to retrieve assignments');
+  } finally {
+    connection.release();
   }
+};
 
-  if (assignments.length === 0) {
-    return null;
+// Function to add an assignment
+const addAssignment = async ({ title, description, dueDate, courseId }) => {
+  const connection = await db.getConnection();
+  try {
+    const assignmentId = generateAssignmentID();
+
+    // Insert assignment into the assignments table
+    await connection.execute(
+      'INSERT INTO assignments (assignmentId, title, description, dueDate, courseId) VALUES (?, ?, ?, ?, ?)',
+      [assignmentId, title, description, dueDate, courseId]
+    );
+
+    return { assignmentId, title, description, dueDate, courseId };
+  } catch (error) {
+    console.error('Error adding assignment:', error);
+    throw new Error('Failed to add assignment');
+  } finally {
+    connection.release();
   }
-
-  return assignments;
 };
 
-const addAssignment = ({ title, description, dueDate, courseId }) => {
-  const newAssignment = {
-    assignmentId: generateAssignmentID(),
-    title,
-    description,
-    dueDate,
-    courseId,
-  };
+// Function to check if an assignment is overdue
+const isAssignmentOverdue = async (assignmentId) => {
+  const connection = await db.getConnection();
+  try {
+    const [rows] = await connection.execute('SELECT dueDate FROM assignments WHERE assignmentId = ?', [assignmentId]);
 
-  assignments.push(newAssignment);
-  return newAssignment;
-};
-
-const isAssignmentOverdue = (assignmentId) => {
-    const assignment = assignments.find((assignment) => assignment.assignmentId === assignmentId);
-    if (assignment) {
-      const deadline = new Date(assignment.dueDate);
+    if (rows.length > 0) {
+      const deadline = new Date(rows[0].dueDate);
       const currentDate = new Date();
       return currentDate > deadline;
     }
-    return false; // If assignment not found, it's not overdue
-  };
 
-const deleteAssignment = (assignmentId) => {
-  const initialLength = assignments.length;
-  assignments = assignments.filter((assignment) => assignment.assignmentId !== assignmentId);
-  return assignments.length !== initialLength;
+    return false;
+  } catch (error) {
+    console.error('Error checking if assignment is overdue:', error);
+    throw new Error('Failed to check if assignment is overdue');
+  } finally {
+    connection.release();
+  }
 };
 
-const updateAssignment = (assignmentId, { title, description, dueDate, courseId }) => {
-  const index = assignments.findIndex((assignment) => assignment.assignmentId === assignmentId);
-
-  if (index !== -1) {
-    assignments[index] = {
-      ...assignments[index],
-      title,
-      description,
-      dueDate,
-      courseId,
-    };
-    return assignments[index];
+// Function to delete an assignment
+const deleteAssignment = async (assignmentId) => {
+  const connection = await db.getConnection();
+  try {
+    const [result] = await connection.execute('DELETE FROM assignments WHERE assignmentId = ?', [assignmentId]);
+    return result.affectedRows > 0;
+  } catch (error) {
+    console.error('Error deleting assignment:', error);
+    throw new Error('Failed to delete assignment');
+  } finally {
+    connection.release();
   }
-  return null;
+};
+
+// Function to update an assignment
+const updateAssignment = async (assignmentId, { title, description, dueDate, courseId }) => {
+  const connection = await db.getConnection();
+  try {
+    await connection.execute(
+      'UPDATE assignments SET title = ?, description = ?, dueDate = ?, courseId = ? WHERE assignmentId = ?',
+      [title, description, dueDate, courseId, assignmentId]
+    );
+
+    return { assignmentId, title, description, dueDate, courseId };
+  } catch (error) {
+    console.error('Error updating assignment:', error);
+    throw new Error('Failed to update assignment');
+  } finally {
+    connection.release();
+  }
 };
 
 module.exports = {
   generateAssignmentID,
   getAllAssignments,
   addAssignment,
-  isAssignmentOverdue,
+  isAssignmentOverdue: isAssignmentOverdue,
   deleteAssignment,
   updateAssignment,
 };

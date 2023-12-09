@@ -1,63 +1,100 @@
 // results.js (in models directory)
 
-let nanoid;
-
-(async () => {
-    const nanoidModule = await import('nanoid');
-    nanoid = nanoidModule.nanoid;
-  })();
+const db = require('../database/db');
+const { nanoid } = require('nanoid');
 
 let results = [];
 
+// Function to generate a result ID
 const generateResultID = () => {
-  return nanoid(8); // Generating a unique 8-character ID using nanoid
+  return nanoid(8);
 };
 
-const getAllResults = () => {
-  if (!results || !Array.isArray(results)) {
-    throw new Error('Result data is invalid or unavailable');
+const getAllResults = async () => {
+  const connection = await db.getConnection();
+  try {
+    const [rows] = await connection.execute('SELECT * FROM results');
+    return rows;
+  } catch (error) {
+    console.error('Error retrieving results:', error);
+    throw new Error('Failed to retrieve results');
+  } finally {
+    connection.release();
   }
+};
 
-  if (results.length === 0) {
+const addResult = async ({ studentId, courseId, assignmentId, score }) => {
+  const connection = await db.getConnection();
+  try {
+    const resultId = generateResultID();
+    const [result] = await connection.execute(
+      'INSERT INTO results (resultId, studentId, courseId, assignmentId, score) VALUES (?, ?, ?, ?, ?)',
+      [resultId, studentId, courseId, assignmentId, score]
+    );
+
+    if (result.affectedRows > 0) {
+      const newResult = {
+        resultId,
+        studentId,
+        courseId,
+        assignmentId,
+        score,
+      };
+      results.push(newResult);
+      return newResult;
+    }
+
+    throw new Error('Failed to add result');
+  } catch (error) {
+    console.error('Error adding result:', error);
+    throw new Error('Failed to add result');
+  } finally {
+    connection.release();
+  }
+};
+
+const deleteResult = async (resultId) => {
+  const connection = await db.getConnection();
+  try {
+    const [result] = await connection.execute('DELETE FROM results WHERE resultId = ?', [resultId]);
+    return result.affectedRows > 0;
+  } catch (error) {
+    console.error('Error deleting result:', error);
+    throw new Error('Failed to delete result');
+  } finally {
+    connection.release();
+  }
+};
+
+const updateResult = async (resultId, { studentId, courseId, assignmentId, score }) => {
+  const connection = await db.getConnection();
+  try {
+    const [result] = await connection.execute(
+      'UPDATE results SET studentId = ?, courseId = ?, assignmentId = ?, score = ? WHERE resultId = ?',
+      [studentId, courseId, assignmentId, score, resultId]
+    );
+
+    if (result.affectedRows > 0) {
+      const index = results.findIndex((result) => result.resultId === resultId);
+      if (index !== -1) {
+        results[index] = {
+          ...results[index],
+          studentId,
+          courseId,
+          assignmentId,
+          score,
+        };
+        return results[index];
+      }
+    }
+
     return null;
+  } catch (error) {
+    console.error('Error updating result:', error);
+    throw new Error('Failed to update result');
+  } finally {
+    connection.release();
   }
-
-  return results;
-};
-
-const addResult = ({ studentId, courseId, assignmentId, score }) => {
-  const newResult = {
-    resultId: generateResultID(),
-    studentId,
-    courseId,
-    assignmentId,
-    score,
-  };
-
-  results.push(newResult);
-  return newResult;
-};
-
-const deleteResult = (resultId) => {
-  const initialLength = results.length;
-  results = results.filter((result) => result.resultId !== resultId);
-  return results.length !== initialLength;
-};
-
-const updateResult = (resultId, { studentId, courseId, assignmentId, score }) => {
-  const index = results.findIndex((result) => result.resultId === resultId);
-
-  if (index !== -1) {
-    results[index] = {
-      ...results[index],
-      studentId,
-      courseId,
-      assignmentId,
-      score,
-    };
-    return results[index];
-  }
-  return null;
 };
 
 module.exports = {

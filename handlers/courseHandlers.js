@@ -1,33 +1,35 @@
 const CoursesModel = require('../models/courses');
 
-const getAllCourses = (req, res) => {
-    try {
-      const allCourses = CoursesModel.getAllCourses();
+
+const getAllCourses = async (req, res) => {
+  try {
+    const allCourses = await CoursesModel.getAllCourses(); // Add await here
   
-      if (!allCourses || allCourses.length === 0) {
-        return res.status(404).json({
-          status: 'fail',
-          message: 'No courses found or course database is empty',
-        });
-      }
-  
-      // If the courses were successfully retrieved
-      return res.status(200).json({
-        status: 'success',
-        data: {
-          courses: allCourses,
-        },
-      });
-    } catch (error) {
-      console.error('Error retrieving courses:', error);
-      return res.status(500).json({
-        status: 'error',
-        message: 'Failed to retrieve courses. An internal server error occurred.',
+    if (!allCourses || allCourses.length === 0) {
+      return res.status(404).json({
+        status: 'fail',
+        message: 'No courses found or course database is empty',
       });
     }
-  };
 
-const createCourse = (req, res) => {
+    // If the courses were successfully retrieved
+    return res.status(200).json({
+      status: 'success',
+      data: {
+        courses: allCourses,
+      },
+    });
+  } catch (error) {
+    console.error('Error retrieving courses:', error);
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to retrieve courses. An internal server error occurred.',
+    });
+  }
+};
+
+
+const createCourse = async (req, res) => {
   try {
     const { courseName, instructorId, schedule, description } = req.body;
 
@@ -38,7 +40,7 @@ const createCourse = (req, res) => {
       });
     }
 
-    const newCourse = CoursesModel.createCourse({
+    const newCourse = await CoursesModel.createCourse({
       courseName,
       instructorId,
       schedule,
@@ -49,10 +51,11 @@ const createCourse = (req, res) => {
       status: 'success',
       message: 'Course created successfully',
       data: {
-        course: newCourse,
+        course: newCourse, // Include the newly created course in the response
       },
     });
   } catch (error) {
+    console.error('Error creating course:', error);
     return res.status(500).json({
       status: 'error',
       message: 'Failed to create course',

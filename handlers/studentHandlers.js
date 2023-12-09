@@ -2,10 +2,10 @@
 
 const Students = require('../models/students');
 
-const getAllStudents = (req, res) => {
+const getAllStudents = async (req, res) => {
   try {
-    const allStudents = Students.getAllStudents();
-    if (!allStudents) {
+    const allStudents = await Students.getAllStudents();
+    if (!allStudents || allStudents.length === 0) {
       return res.status(404).json({ message: 'No students found' });
     }
     return res.status(200).json(allStudents);
@@ -14,20 +14,20 @@ const getAllStudents = (req, res) => {
   }
 };
 
-const addStudent = (req, res) => {
+const addStudent = async (req, res) => {
   try {
     const { studentName, email, age, courses } = req.body;
-    const newStudent = Students.addStudent({ studentName, email, age, courses });
+    const newStudent = await Students.addStudent({ studentName, email, age, courses });
     return res.status(201).json(newStudent);
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
 };
 
-const deleteStudent = (req, res) => {
+const deleteStudent = async (req, res) => {
   try {
     const { studentId } = req.params;
-    const isDeleted = Students.deleteStudent(studentId);
+    const isDeleted = await Students.deleteStudent(studentId);
     if (isDeleted) {
       return res.status(200).json({ message: 'Student deleted successfully' });
     }
@@ -37,11 +37,11 @@ const deleteStudent = (req, res) => {
   }
 };
 
-const updateStudent = (req, res) => {
+const updateStudent = async (req, res) => {
   try {
     const { studentId } = req.params;
     const { studentName, email, age, courses } = req.body;
-    const updatedStudent = Students.updateStudent(studentId, { studentName, email, age, courses });
+    const updatedStudent = await Students.updateStudent(studentId, { studentName, email, age, courses });
     if (updatedStudent) {
       return res.status(200).json(updatedStudent);
     }

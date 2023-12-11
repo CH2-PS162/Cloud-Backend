@@ -1,10 +1,13 @@
 const express = require('express');
 const router = express.Router();
+const authenticateToken = require('../middleware/authMiddleware');
+const authorize = require('../middleware/authorize');
 const TeacherHandlers = require('../handlers/teacherHandlers');
 
-router.get('/', TeacherHandlers.getAllTeachers);
-router.post('/', TeacherHandlers.addTeacher);
-router.delete('/:teacherId', TeacherHandlers.deleteTeacher);
-router.put('/:teacherId', TeacherHandlers.updateTeacher);
+// Protected routes (require authentication and specific roles)
+router.get('/', authenticateToken, authorize(['admin', 'teacher', 'parent']), TeacherHandlers.getAllTeachers);
+router.post('/', authenticateToken, authorize(['admin']), TeacherHandlers.addTeacher);
+router.delete('/:teacherId', authenticateToken, authorize(['admin']), TeacherHandlers.deleteTeacher);
+router.put('/:teacherId', authenticateToken, authorize(['admin', 'teacher']), TeacherHandlers.updateTeacher);
 
 module.exports = router;

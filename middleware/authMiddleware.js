@@ -1,25 +1,20 @@
 const jwt = require('jsonwebtoken');
+const secretKey = 'yourSecretKey'; // Replace with your secret key
 
-const authenticateToken = (req, res, next) => {
+function authenticateToken(req, res, next) {
   const token = req.headers['authorization'];
 
   if (!token) {
-    return res.status(401).json({
-      status: 'fail',
-      message: 'Authentication failed. Token not provided.',
-    });
+    return res.status(401).json({ message: 'Authentication failed: Token is missing' });
   }
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+  jwt.verify(token, secretKey, (err, decoded) => {
     if (err) {
-      return res.status(403).json({
-        status: 'fail',
-        message: 'Authentication failed. Invalid token.',
-      });
+      return res.status(403).json({ message: 'Authentication failed: Invalid token' });
     }
-    req.user = user;
+    req.user = decoded;
     next();
   });
-};
+}
 
 module.exports = authenticateToken;

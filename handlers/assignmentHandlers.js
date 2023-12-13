@@ -1,6 +1,6 @@
 // assignmentHandlers.js
 
-const Assignments = require('../models/assignments');
+const Assignments = require('../models/assignments.js');
 
 const getAllAssignments = async (req, res) => {
   try {

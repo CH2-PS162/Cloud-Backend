@@ -1,61 +1,92 @@
-const express = require('express');
-const app = express();
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt')
-const authenticateToken = require('./middleware/authMiddleware');
-const authorize = require('./middleware/authorize');
-const User = require('./models/User');
-
-const courseRoutes = require('./routes/courseRoutes');
-const studentRoutes = require('./routes/studentRoutes');
-const assignmentRoutes = require('./routes/assignmentRoutes');
-const teacherRoutes = require('./routes/teacherRoutes');
-const resultsRoutes = require('./routes/resultRoutes');
-const submissionRoutes = require('./routes/submissionRoutes');
-const presenceRoutes = require('./routes/presenceRoutes');
-
-
-app.use(express.json()); // Middleware to parse JSON request bodies
-
-
-
-//login route
-app.post('/login', async (req, res) => {
-  const { username, password } = req.body;
-
-  try {
-    // Find the user by username
-    const user = new User();
-    const foundUser = await user.findOneByUsername(username);
-
-    if (!foundUser) {
-      return res.status(401).json({ message: 'User not found' });
-    }
-
-    if (!bcrypt.compareSync(password, foundUser.password)) {
-      return res.status(401).json({ message: 'Incorrect password' });
-    }
-
-    // Generate a token
-    const token = jwt.sign({ username: foundUser.username, role: foundUser.role }, 'yourSecretKey', { expiresIn: '1h' });
-
-    // Send the token in the response
-    res.json({ token });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+if (process.env.NODE_ENV !== 'production') {
+    require('dotenv').config()
   }
-});
+  
+  const express = require('express')
+  const app = express()
+  const bcrypt = require('bcrypt')
+  const passport = require('passport')
+  const flash = require('express-flash')
+  const session = require('express-session')
+  const methodOverride = require('method-override')
+  const db = require('./database/db');
+  
+  const assignmentRoutes = require('./routes/assignmentRoutes');
 
-app.use('/courses', authenticateToken, authorize(['admin', 'teacher']), courseRoutes);
-app.use('/students', authenticateToken, authorize(['admin', 'parent']), studentRoutes);
-app.use('/assignment', authenticateToken, authorize(['admin', 'teacher']), assignmentRoutes);
-app.use('/teachers', authenticateToken, authorize(['admin', 'teacher']), teacherRoutes);
-app.use('/results', authenticateToken, authorize(['admin', 'teacher', 'student']), resultsRoutes);
-app.use('/submission', authenticateToken, authorize(['admin', 'student']), submissionRoutes);
-app.use('/presence', authenticateToken, authorize(['admin', 'teacher', 'student', 'parent']), presenceRoutes);
 
+  const initializePassport = require('./passport-config')
+  initializePassport(
+    passport,
+    email => users.find(user => user.email === email),
+    id => users.find(user => user.id === id)
+  )
+  
+  const users = []
+  
+  app.set('view-engine', 'ejs')
+  app.use(express.urlencoded({ extended: false }))
+  app.use(flash())
+  app.use(session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false
+  }))
+  app.use(passport.initialize())
+  app.use(passport.session())
+  app.use(methodOverride('_method'))
+  
+  app.get('/', checkAuthenticated, (req, res) => {
+    res.render('index.ejs', { name: req.user.name })
+  })
+  
+  app.get('/login', checkNotAuthenticated, (req, res) => {
+    res.render('login.ejs')
+  })
+  
+  app.post('/login', checkNotAuthenticated, passport.authenticate('local', {
+    successRedirect: '/',
+    failureRedirect: '/login',
+    failureFlash: true
+  }))
+  
+  app.get('/register', checkNotAuthenticated, (req, res) => {
+    res.render('register.ejs')
+  })
+  
+  app.post('/register', checkNotAuthenticated, async (req, res) => {
+    try {
+      const hashedPassword = await bcrypt.hash(req.body.password, 10);
+      const connection = await db.getConnection();
+      await connection.query('INSERT INTO users (name, email, password) VALUES (?, ?, ?)', [req.body.name, req.body.email, hashedPassword]);
+      connection.release(); // Release the connection when done
+      res.redirect('/login');
+    } catch (error) {
+      console.error('Error occurred during registration:', error);
+      res.redirect('/register');
+    }
+  });
+  
+  app.delete('/logout', (req, res) => {
+    req.logout(() => {
+      res.redirect('/login');
+    });
+  });
 
-const PORT = 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+  app.use('/assignment', checkAuthenticated, assignmentRoutes);
+  
+  function checkAuthenticated(req, res, next) {
+    if (req.isAuthenticated()) {
+      return next()
+    }
+  
+    res.redirect('/login')
+  }
+  
+  function checkNotAuthenticated(req, res, next) {
+    if (req.isAuthenticated()) {
+      return res.redirect('/')
+    }
+    next()
+  }
+  
+  app.listen(4000)

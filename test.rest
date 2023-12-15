@@ -1,0 +1,10 @@
+POST  http://localhost:4000/localhost:4000/login
+Content-Type: application/json
+
+{
+    "email" : "ac@a",
+    "password": "aca"
+}
+
+###
+GET url HTTP/1.1

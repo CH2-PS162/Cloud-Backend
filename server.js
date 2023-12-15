@@ -3,15 +3,13 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 const express = require('express');
-const app = express();
 const bcrypt = require('bcrypt');
-const passport = require('passport');
-const flash = require('express-flash');
-const session = require('express-session');
-const methodOverride = require('method-override');
 const jwt = require('jsonwebtoken');
 const db = require('./database/db');
-const { generateTokens } = require('./handlers/authHandlers');
+
+const app = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
 //Routes
 const assignmentRoutes = require('./routes/assignmentRoutes');
@@ -23,141 +21,92 @@ const submissionRoutes = require('./routes/submissionRoutes');
 const teacherRoutes = require('./routes/teacherRoutes');
 
 
-const initializePassport = require('./passport-config');
-initializePassport(
-  passport,
-  email => getUserByEmail(email),
-  id => getUserById(id)
-);
+// Utility Functions
+async function getUserByEmail(email) {
+  const connection = await db.getConnection();
+  const [users] = await connection.query('SELECT * FROM users WHERE email = ?', [email]);
+  connection.release();
+  return users.length > 0 ? users[0] : null;
+}
 
-app.set('view-engine', 'ejs');
-app.use(express.urlencoded({ extended: false }));
-app.use(flash());
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false
-}));
-app.use(passport.initialize());
-app.use(passport.session());
-app.use(methodOverride('_method'));
+// JWT Middleware
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
 
-app.get('/', checkAuthenticated, (req, res) => {
-  const { accessToken } = generateTokens(req.user.user_id, req.user.email, req.user.name);
-  res.render('index.ejs', { name: req.user.name, accessToken });
+  if (token == null) return res.sendStatus(401);
+
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+    if (err) return res.sendStatus(403);
+    req.user = user;
+    next();
+  });
+}
+
+//test
+app.post('/test', (req, res) => {
+  console.log(req.body); // Log the request body to the console
+  res.json({ message: 'Received', data: req.body });
 });
 
-app.get('/login', checkNotAuthenticated, (req, res) => {
-  res.render('login.ejs');
+// Login Route
+app.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+  const user = await getUserByEmail(email);
+
+  if (user == null || !(await bcrypt.compare(password, user.password))) {
+    return res.status(400).send('Incorrect email or password');
+  }
+
+  const accessToken = jwt.sign({ user_id: user.user_id, email: user.email }, process.env.ACCESS_TOKEN_SECRET);
+  res.json({ accessToken });
 });
 
-app.post('/login', checkNotAuthenticated, (req, res, next) => {
-  passport.authenticate('local', (err, user, info) => {
-    if (err) {
-      return next(err);
-    }
-    if (!user) {
-      return res.redirect('/login');
-    }
-
-    req.logIn(user, (err) => {
-      if (err) {
-        return next(err);
-      }
-
-      const role = req.user.role;
-      switch (role) {
-        case 'teacher':
-          return res.redirect('/teacher');
-        case 'student':
-          return res.redirect('/student');
-        case 'admin':
-          return res.redirect('/admin');
-        case 'parent':
-          return res.redirect('/parent');
-        default:
-          return res.redirect('/');
-      }
-    });
-  })(req, res, next);
-});
-
-
-app.get('/register', checkNotAuthenticated, (req, res) => {
-  res.render('register.ejs');
-});
-
-app.post('/register', checkNotAuthenticated, async (req, res) => {
+// Register Route
+app.post('/register', async (req, res) => {
   try {
+    const { name, email, password, role } = req.body;
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: "Name, email, and password are required" });
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
     const { nanoid } = require('nanoid');
     const user_id = nanoid(8);
-    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+
     const connection = await db.getConnection();
-    await connection.query('INSERT INTO users (user_id, name, email, password, role) VALUES (?, ?, ?, ?, ?)', [user_id, req.body.name, req.body.email, hashedPassword, req.body.role]);
+    await connection.query('INSERT INTO users (user_id, name, email, password, role) VALUES (?, ?, ?, ?, ?)', [user_id, name, email, hashedPassword, role || 'student']);
     connection.release();
-    res.redirect('/login');
+
+    res.json({ message: 'User registered successfully' });
   } catch (error) {
-    console.error('Error occurred during registration:', error);
-    res.redirect('/register');
+    res.status(500).json({ message: 'Server error during registration', error: error.message });
   }
 });
 
-app.delete('/logout', (req, res) => {
-  req.logout(() => {
-    res.redirect('/login');
-  });
+app.get('/teacher', authenticateToken, (req, res) => {
+  res.json({ message: 'Access to protected route!', user: req.user });
 });
 
-
-app.get('/teacher', checkAuthenticated, (req, res) => {
-  const { accessToken } = generateTokens(req.user.user_id, req.user.email, req.user.name, req.user.role);
-  res.render('teacher.ejs', { name: req.user.name, accessToken });
+app.get('/student', authenticateToken, (req, res) => {
+  res.json({ message: 'Access to protected route!', user: req.user });
 });
-
-
-app.get('/student', checkAuthenticated, (req, res) => {
-  const { accessToken } = generateTokens(req.user.user_id, req.user.email, req.user.name, req.user.role);
-  res.render('student.ejs', { name: req.user.name, accessToken });
+app.get('/admin', authenticateToken, (req, res) => {
+  res.json({ message: 'Access to protected route!', user: req.user });
 });
-
-
-app.get('/parent', checkAuthenticated, (req, res) => {
-  const { accessToken } = generateTokens(req.user.user_id, req.user.email, req.user.name, req.user.role);
-  res.render('parent.ejs', { name: req.user.name, accessToken });
+app.get('/parent', authenticateToken, (req, res) => {
+  res.json({ message: 'Access to protected route!', user: req.user });
 });
-
-
-
-app.use('/admin', checkAuthenticated, (req, res) => {
-  const { accessToken } = generateTokens(req.user.user_id, req.user.email, req.user.name, req.user.role);
-  res.render('admin.ejs', { name: req.user.name, accessToken });
-})
 
 
 // ini untuk endpoint
-app.use('/assignment', checkAuthenticated, assignmentRoutes);
-app.use('/course', checkAuthenticated, courseRoutes);
-app.use('/presence', checkAuthenticated, presenceRoutes);
-app.use('/result', checkAuthenticated, resultRoutes);
-app.use('/get-student', checkAuthenticated, studentRoutes);
-app.use('/submission', checkAuthenticated, submissionRoutes);
-app.use('/get-teacher', checkAuthenticated, teacherRoutes);
+app.use('/assignment', authenticateToken, assignmentRoutes);
+app.use('/course', authenticateToken, courseRoutes);
+app.use('/presence', authenticateToken, presenceRoutes);
+app.use('/result', authenticateToken, resultRoutes);
+app.use('/get-student', authenticateToken, studentRoutes);
+app.use('/submission', authenticateToken, submissionRoutes);
+app.use('/get-teacher', authenticateToken, teacherRoutes);
 
-//dibawah ni function Middleware
-function checkAuthenticated(req, res, next) {
-  if (req.isAuthenticated()) {
-    return next();
-  }
-
-  res.redirect('/login');
-}
-
-function checkNotAuthenticated(req, res, next) {
-  if (req.isAuthenticated()) {
-    return res.redirect('/');
-  }
-  next();
-}
 
 async function getUserByEmail(email) {
   const connection = await db.getConnection();

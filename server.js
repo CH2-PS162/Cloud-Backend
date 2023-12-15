@@ -1,5 +1,5 @@
 if (process.env.NODE_ENV !== 'production') {
-  require('dotenv').config()
+  require('dotenv').config();
 }
 
 const express = require('express');
@@ -20,11 +20,13 @@ const studentRoutes = require('./routes/studentRoutes');
 const submissionRoutes = require('./routes/submissionRoutes');
 const teacherRoutes = require('./routes/teacherRoutes');
 
-
 // Utility Functions
 async function getUserByEmail(email) {
   const connection = await db.getConnection();
-  const [users] = await connection.query('SELECT * FROM users WHERE email = ?', [email]);
+  const [users] = await connection.query(
+    'SELECT * FROM users WHERE email = ?',
+    [email]
+  );
   connection.release();
   return users.length > 0 ? users[0] : null;
 }
@@ -58,8 +60,11 @@ app.post('/login', async (req, res) => {
     return res.status(400).send('Incorrect email or password');
   }
 
-  const accessToken = jwt.sign({ user_id: user.user_id, email: user.email }, process.env.ACCESS_TOKEN_SECRET);
-  res.json({ accessToken });
+  const accessToken = jwt.sign(
+    { user_id: user.user_id, email: user.email },
+    process.env.ACCESS_TOKEN_SECRET
+  );
+  res.json({ accessToken, role: user.role });
 });
 
 // Register Route
@@ -67,19 +72,33 @@ app.post('/register', async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
     if (!name || !email || !password) {
-      return res.status(400).json({ message: "Name, email, and password are required" });
+      return res
+        .status(400)
+        .json({ message: 'Name, email, and password are required' });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     const { nanoid } = require('nanoid');
     const user_id = nanoid(8);
 
     const connection = await db.getConnection();
-    await connection.query('INSERT INTO users (user_id, name, email, password, role) VALUES (?, ?, ?, ?, ?)', [user_id, name, email, hashedPassword, role || 'student']);
+    await connection.query(
+      'INSERT INTO users (user_id, name, email, password, role) VALUES (?, ?, ?, ?, ?)',
+      [user_id, name, email, hashedPassword, role || 'student']
+    );
     connection.release();
 
-    res.json({ message: 'User registered successfully' });
+    const user = await getUserByEmail(email);
+
+    const accessToken = jwt.sign(
+      { user_id: user.user_id, email: user.email },
+      process.env.ACCESS_TOKEN_SECRET
+    );
+    res.json({ accessToken, role: user.role });
   } catch (error) {
-    res.status(500).json({ message: 'Server error during registration', error: error.message });
+    res.status(500).json({
+      message: 'Server error during registration',
+      error: error.message,
+    });
   }
 });
 
@@ -97,7 +116,6 @@ app.get('/parent', authenticateToken, (req, res) => {
   res.json({ message: 'Access to protected route!', user: req.user });
 });
 
-
 // ini untuk endpoint
 app.use('/assignment', assignmentRoutes);
 app.use('/course', courseRoutes);
@@ -107,17 +125,22 @@ app.use('/get-student', studentRoutes);
 app.use('/submission', submissionRoutes);
 app.use('/get-teacher', teacherRoutes);
 
-
 async function getUserByEmail(email) {
   const connection = await db.getConnection();
-  const [users] = await connection.query('SELECT * FROM users WHERE email = ?', [email]);
+  const [users] = await connection.query(
+    'SELECT * FROM users WHERE email = ?',
+    [email]
+  );
   connection.release();
   return users.length > 0 ? users[0] : null;
 }
 
 async function getUserById(id) {
   const connection = await db.getConnection();
-  const [users] = await connection.query('SELECT * FROM users WHERE user_id = ?', [id]);
+  const [users] = await connection.query(
+    'SELECT * FROM users WHERE user_id = ?',
+    [id]
+  );
   connection.release();
   return users.length > 0 ? users[0] : null;
 }

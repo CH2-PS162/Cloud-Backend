@@ -1,19 +1,24 @@
 const express = require('express');
 const router = express.Router();
 const TeacherHandlers = require('../handlers/teacherHandlers');
+const jwt = require('jsonwebtoken');
 
-function checkAuthenticated(req, res, next) {
-    if (req.isAuthenticated()) {
-      return next()
-    }
-  
-    res.redirect('/')
-  }
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
 
+  if (token == null) return res.sendStatus(401);
+
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+    if (err) return res.sendStatus(403);
+    req.user = user;
+    next();
+  });
+}
 // Protected routes (require authentication and specific roles)
-router.get('/', checkAuthenticated, TeacherHandlers.getAllTeachers);
-router.post('/', checkAuthenticated, TeacherHandlers.addTeacher);
-router.delete('/:teacherId', checkAuthenticated, TeacherHandlers.deleteTeacher);
-router.put('/:teacherId', checkAuthenticated, TeacherHandlers.updateTeacher);
+router.get('/', authenticateToken, TeacherHandlers.getAllTeachers);
+router.post('/', authenticateToken, TeacherHandlers.addTeacher);
+router.delete('/:teacherId', authenticateToken, TeacherHandlers.deleteTeacher);
+router.put('/:teacherId', authenticateToken, TeacherHandlers.updateTeacher);
 
 module.exports = router;

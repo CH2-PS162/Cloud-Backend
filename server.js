@@ -99,13 +99,13 @@ app.get('/parent', authenticateToken, (req, res) => {
 
 
 // ini untuk endpoint
-app.use('/assignment', authenticateToken, assignmentRoutes);
-app.use('/course', authenticateToken, courseRoutes);
-app.use('/presence', authenticateToken, presenceRoutes);
-app.use('/result', authenticateToken, resultRoutes);
-app.use('/get-student', authenticateToken, studentRoutes);
-app.use('/submission', authenticateToken, submissionRoutes);
-app.use('/get-teacher', authenticateToken, teacherRoutes);
+app.use('/assignment', assignmentRoutes);
+app.use('/course', courseRoutes);
+app.use('/presence', presenceRoutes);
+app.use('/result', resultRoutes);
+app.use('/get-student', studentRoutes);
+app.use('/submission', submissionRoutes);
+app.use('/get-teacher', teacherRoutes);
 
 
 async function getUserByEmail(email) {

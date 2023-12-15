@@ -1,5 +1,3 @@
-// resultHandlers.js
-
 const Results = require('../models/results');
 
 const getAllResults = async (req, res) => {

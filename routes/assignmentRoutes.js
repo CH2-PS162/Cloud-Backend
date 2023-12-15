@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const AssignmentHandlers = require('../handlers/assignmentHandlers');
+const jwt = require('jsonwebtoken');
 
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];

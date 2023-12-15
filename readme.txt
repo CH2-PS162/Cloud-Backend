@@ -72,24 +72,16 @@ Cloud-Backend/
 │   ├── submissionRoutes.js
 │   └── teacherRoutes.js
 │
-├── views/                 # EJS templates
-│   ├── index.ejs
-│   ├── login.ejs
-│   ├── register.ejs
-│   ├── admin.ejs
-│   ├── teacher.ejs
-│   ├── student.ejs
-│   └── parent.ejs
 │
 ├── passport-config.js     # Passport.js configuration
 ├── app.js                 # Main application file
 └── package.json
 
 
-Fetch Presence Records
-  GET http://localhost:5000/presence/date/2023-12-06
+Fetch Presence Records (check test.rest - install .rest extension in visual studio code)
+  GET http://localhost:4000/presence/date/2023-12-06
   
-  POST http://localhost:5000/presence/mark
+  POST http://localhost:4000/presence/mark
 
 Mark Presence
   {

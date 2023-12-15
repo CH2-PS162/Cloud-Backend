@@ -1,9 +1,18 @@
-// authHandlers.js
-
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-
 const UserModel = require('../models/user');
+
+const generateTokens = (user_id, email, name) => {
+  const accessToken = jwt.sign({ user_id, email, name }, process.env.SESSION_SECRET, {
+    expiresIn: '1h', 
+  });
+
+  const refreshToken = jwt.sign({ user_id, email, name }, process.env.REFRESH_SESSION_SECRET, {
+    expiresIn: '1d',
+  });
+
+  return { accessToken, refreshToken };
+};
 
 const login = async (req, res) => {
   const { email, password } = req.body;
@@ -15,16 +24,15 @@ const login = async (req, res) => {
       return res.status(401).json({ status: 'fail', message: 'Invalid email or password' });
     }
 
-    const accessToken = jwt.sign({ email: user.email, role: user.role }, process.env.JWT_SECRET, {
-      expiresIn: '1h', // You can adjust the token expiration time as needed
-    });
+    const { accessToken, refreshToken } = generateTokens(user.user_id, user.email, user.name);
 
+    // You can send the tokens as cookies or in the response body
+    res.cookie('refreshToken', refreshToken, { httpOnly: true });
     return res.status(200).json({ status: 'success', data: { accessToken } });
   } catch (error) {
     return res.status(500).json({ status: 'error', message: 'Failed to login' });
   }
 };
-
 const register = async (req, res) => {
   const { email, password } = req.body;
 
@@ -41,4 +49,5 @@ const register = async (req, res) => {
 module.exports = {
   login,
   register,
+  generateTokens,
 };

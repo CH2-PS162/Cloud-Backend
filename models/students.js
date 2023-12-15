@@ -7,12 +7,15 @@ const generateStudentID = () => {
   return generateStudentId(8); // Generating a unique 8-character ID using nanoid
 };
 
-// Function to get all students
-const getAllStudents = async () => {
+const getAllStudents = async (page = 1, pageSize = 8) => {
   const connection = await db.getConnection();
   try {
-    const [rows] = await connection.execute('SELECT * FROM students');
-    return rows; // rows will be an empty array if there are no students
+    const offset = (page - 1) * pageSize;
+    const [rows] = await connection.execute(
+      'SELECT * FROM students LIMIT ? OFFSET ?',
+      [pageSize, offset]
+    );
+    return rows;
   } catch (error) {
     console.error('Error retrieving students:', error);
     throw new Error('Failed to retrieve students');
@@ -21,17 +24,15 @@ const getAllStudents = async () => {
   }
 };
 
-// Function to add a student
 const addStudent = async ({ studentName, email, age, courses = [] }) => {
   const connection = await db.getConnection();
 
   try {
-    const studentId = generateStudentID(); // Use the function from the module
+    const studentId = generateStudentID();
     console.log('Generated Student ID:', studentId);
 
     await connection.beginTransaction();
 
-    // Insert student into the students table
     const [studentInsertResult] = await connection.execute(
       'INSERT INTO students (studentId, studentName, email, age) VALUES (?, ?, ?, ?)',
       [studentId, studentName, email, age]

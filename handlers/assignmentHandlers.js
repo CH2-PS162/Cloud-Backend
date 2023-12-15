@@ -1,13 +1,15 @@
-// assignmentHandlers.js
-
-const Assignments = require('../models/assignments');
+const Assignments = require('../models/assignments.js');
 
 const getAllAssignments = async (req, res) => {
   try {
-    const allAssignments = await Assignments.getAllAssignments();
-    if (!allAssignments) {
+    const page = parseInt(req.query.page) || 1;
+    const pageSize = parseInt(req.query.pageSize) || 8;
+    const allAssignments = await Assignments.getAllAssignments(page, pageSize);
+
+    if (!allAssignments || allAssignments.length === 0) {
       return res.status(404).json({ message: 'No assignments found' });
     }
+
     return res.status(200).json(allAssignments);
   } catch (error) {
     return res.status(500).json({ error: error.message });

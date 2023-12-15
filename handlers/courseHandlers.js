@@ -3,8 +3,10 @@ const CoursesModel = require('../models/courses');
 
 const getAllCourses = async (req, res) => {
   try {
-    const allCourses = await CoursesModel.getAllCourses(); // Add await here
-  
+    const page = parseInt(req.query.page) || 1;
+    const pageSize = parseInt(req.query.pageSize) || 8;
+    const allCourses = await CoursesModel.getAllCourses(page, pageSize);
+
     if (!allCourses || allCourses.length === 0) {
       return res.status(404).json({
         status: 'fail',
@@ -12,7 +14,6 @@ const getAllCourses = async (req, res) => {
       });
     }
 
-    // If the courses were successfully retrieved
     return res.status(200).json({
       status: 'success',
       data: {

@@ -4,7 +4,7 @@ class User {
   constructor() {
     this.pool = pool;
   }
-
+  
   async findOneByUsername(username) {
     let connection;
     try {

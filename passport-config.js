@@ -30,13 +30,13 @@ function initialize(passport) {
 
   passport.use(new LocalStrategy({ usernameField: 'email' }, authenticateUser));
 
-  passport.serializeUser((user, done) => done(null, user.id));
+  passport.serializeUser((user, done) => done(null, user.user_id));
 
   passport.deserializeUser(async (id, done) => {
     let connection;
     try {
       connection = await db.getConnection();
-      const [users] = await connection.query('SELECT * FROM users WHERE id = ?', [id]);
+      const [users] = await connection.query('SELECT * FROM users WHERE user_id = ?', [id]);
       if (users.length > 0) {
         return done(null, users[0]);
       } else {

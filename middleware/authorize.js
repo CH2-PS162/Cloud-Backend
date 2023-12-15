@@ -1,3 +1,4 @@
+// authorize
 function authorize(roles) {
     return (req, res, next) => {
       const { role } = req.user;

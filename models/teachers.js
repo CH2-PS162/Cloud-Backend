@@ -2,10 +2,14 @@ const { nanoid: generateTeacherID } = require('nanoid');
 const db = require('../database/db');
 
 // Function to get all teachers
-const getAllTeachers = async () => {
+const getAllTeachers = async (page = 1, pageSize = 8) => {
   const connection = await db.getConnection();
   try {
-    const [rows] = await connection.execute('SELECT * FROM teachers');
+    const offset = (page - 1) * pageSize;
+    const [rows] = await connection.execute(
+      'SELECT * FROM teachers LIMIT ? OFFSET ?',
+      [pageSize, offset]
+    );
     return rows;
   } catch (error) {
     console.error('Error retrieving teachers:', error);

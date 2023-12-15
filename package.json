@@ -1,11 +1,12 @@
 {
   "name": "testingpassport",
   "version": "1.0.0",
-  "description": "",
+  "description": "Learning Management System (LMS)\r   This Learning Management System (LMS) project provides APIs to manage courses, students, assignments, teachers, results, submissions, and presence tracking.",
   "main": "index.js",
   "type": "commonjs",
   "scripts": {
-    "devStart": "nodemon server.js"
+    "devStart": "nodemon server.js",
+    "start": "node server.js"
   },
   "author": "",
   "license": "ISC",
@@ -15,6 +16,7 @@
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
+    "crypto": "^1.0.1",
     "ejs": "^3.1.9",
     "esm": "^3.2.25",
     "express": "^4.18.2",

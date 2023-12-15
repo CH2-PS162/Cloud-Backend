@@ -4,10 +4,14 @@ const Students = require('../models/students');
 
 const getAllStudents = async (req, res) => {
   try {
-    const allStudents = await Students.getAllStudents();
+    const page = parseInt(req.query.page) || 1;
+    const pageSize = parseInt(req.query.pageSize) || 8;
+    const allStudents = await Students.getAllStudents(page, pageSize);
+
     if (!allStudents || allStudents.length === 0) {
       return res.status(404).json({ message: 'No students found' });
     }
+
     return res.status(200).json(allStudents);
   } catch (error) {
     return res.status(500).json({ error: error.message });

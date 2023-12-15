@@ -1,17 +1,18 @@
 const { nanoid: generateID } = require('nanoid');
 const db = require('../database/db');
 
-// Function to generate a unique course ID
 const generateCourseID = () => {
-  return generateID(10);; // Generating a unique 10-character ID using nanoid
+  return generateID(10);
 };
 
-
-// Function to get all courses
-const getAllCourses = async () => {
+const getAllCourses = async (page = 1, pageSize = 8) => {
   const connection = await db.getConnection();
   try {
-    const [rows] = await connection.execute('SELECT * FROM courses');
+    const offset = (page - 1) * pageSize;
+    const [rows] = await connection.execute(
+      'SELECT * FROM courses LIMIT ? OFFSET ?',
+      [pageSize, offset]
+    );
     return rows;
   } catch (error) {
     console.error('Error retrieving courses:', error);

@@ -4,10 +4,14 @@ const Teachers = require('../models/teachers');
 
 const getAllTeachers = async (req, res) => {
   try {
-    const allTeachers = await Teachers.getAllTeachers();
-    if (!allTeachers) {
+    const page = parseInt(req.query.page) || 1;
+    const pageSize = parseInt(req.query.pageSize) || 8;
+    const allTeachers = await Teachers.getAllTeachers(page, pageSize);
+
+    if (!allTeachers || allTeachers.length === 0) {
       return res.status(404).json({ message: 'No teachers found' });
     }
+
     return res.status(200).json(allTeachers);
   } catch (error) {
     return res.status(500).json({ error: error.message });

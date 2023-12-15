@@ -1,66 +1,90 @@
-Learning Management System (LMS)
-  This Learning Management System (LMS) project provides APIs to manage courses, students, assignments, teachers, results, submissions, and presence tracking.
+Cloud Backend
+Cloud Backend is a Node.js web application designed for educational institutions. It facilitates the management of assignments, courses, presence, results, students, submissions, and teachers. With an intuitive interface and a robust backend, this application is an essential tool for administrators, teachers, students, and parents.
 
 Features
-  Courses: CRUD operations for courses.
-  Students: Manage student data.
-  Assignments: Create, update, and delete assignments.
-  Teachers: Add, edit, and delete teacher details.
-  Results: API for managing student results.
-  Submissions: Functionality to handle student submissions for assignments.
-  Presence Tracking: Track student presence for courses.
+User Authentication: Secure login and registration system for users.
+Role-Based Access Control: Different interfaces and functionalities for teachers, students, parents, and administrators.
+Course Management: Creation and management of courses.
+Assignment Management: Posting and tracking of assignments.
+Presence Tracking: Record and monitor student attendance.
+Results Management: Enter and view student academic results.
+Student and Teacher Profiles: Manage student and teacher information.
+Getting Started
+These instructions will get you a copy of the project up and running on your local machine.
 
+Prerequisites
+Node.js
+npm (Node Package Manager)
+MySQL Database
+
+
+Installing
+Clone the repository:
+
+git clone https://github.com/CH2-PS162/Cloud-Backend.git
+cd Cloud-Backend
+
+Install dependencies:
+npm install
+
+Set up the environment variables:
+Create a .env file in the root directory and add the following:
+
+
+makefile (.env)
+SESSION_SECRET=YourSessionSecret
+
+Start the server:
+npm start
+The server will start running on http://localhost:4000.
 
 File Structure
-  projectlms/
-  │
-  ├── models/
-  │   ├── course.js
-  │   ├── student.js
-  │   ├── assignment.js
-  │   ├── teacher.js
-  │   ├── result.js
-  │   ├── submission.js
-  │   └── presence.js
-  │
-  ├── handlers/
-  │   ├── courseHandlers.js
-  │   ├── studentHandlers.js
-  │   ├── assignmentHandlers.js
-  │   ├── teacherHandlers.js
-  │   ├── resultHandlers.js
-  │   ├── submissionHandlers.js
-  │   └── presenceHandlers.js
-  │
-  ├── routes/
-  │   ├── courseRoutes.js
-  │   ├── studentRoutes.js
-  │   ├── assignmentRoutes.js
-  │   ├── teacherRoutes.js
-  │   ├── resultRoutes.js
-  │   ├── submissionRoutes.js
-  │   └── presenceRoutes.js
-  │
-  └── server.js
+Cloud-Backend/
+│
+├── database/              # Database configuration and scripts
+│   └── db.js
+│
+├── handlers/              # Business logic
+│   ├── authHandlers.js
+│   ├── assignmentHandlers.js
+│   ├── courseHandlers.js
+│   ├── presenceHandlers.js
+│   ├── resultHandlers.js
+│   ├── studentHandlers.js
+│   ├── submissionHandlers.js
+│   └── teacherHandlers.js
+│
+├── models/                # Database models
+│   ├── assignments.js
+│   ├── courses.js
+│   ├── presences.js
+│   ├── results.js
+│   ├── students.js
+│   ├── submissions.js
+│   └── teachers.js
+│
+├── routes/                # Express routes
+│   ├── assignmentRoutes.js
+│   ├── courseRoutes.js
+│   ├── presenceRoutes.js
+│   ├── resultRoutes.js
+│   ├── studentRoutes.js
+│   ├── submissionRoutes.js
+│   └── teacherRoutes.js
+│
+├── views/                 # EJS templates
+│   ├── index.ejs
+│   ├── login.ejs
+│   ├── register.ejs
+│   ├── admin.ejs
+│   ├── teacher.ejs
+│   ├── student.ejs
+│   └── parent.ejs
+│
+├── passport-config.js     # Passport.js configuration
+├── app.js                 # Main application file
+└── package.json
 
-
-SETUP
-  1. Setup: Install dependencies with npm install.
-  npm install nanoid
-  npm install express
-  npm install mysql2
-  npm install nanoid@^3.0.0
-  
-  2. Start Server: Run the server with node server.js.
-  
-  3. API Endpoints:
-  - Courses: /courses
-  - Students: /students
-  - Assignments: /assignment
-  - Teachers: /teachers
-  - Results: /results
-  - Submissions: /submission
-  - Presence Tracking: /presence/mark, /presence/date/:date
 
 Fetch Presence Records
   GET http://localhost:5000/presence/date/2023-12-06

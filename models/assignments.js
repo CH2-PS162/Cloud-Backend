@@ -2,10 +2,14 @@ const { nanoid: generateAssignmentID } = require('nanoid');
 const db = require('../database/db');
 
 // Function to get all assignments
-const getAllAssignments = async () => {
+const getAllAssignments = async (page = 1, pageSize = 8) => {
   try {
     const connection = await db.getConnection();
-    const [rows] = await connection.execute('SELECT * FROM assignments');
+    const offset = (page - 1) * pageSize;
+    const [rows] = await connection.execute(
+      'SELECT * FROM assignments LIMIT ? OFFSET ?',
+      [pageSize, offset]
+    );
     connection.release();
     return rows;
   } catch (error) {
@@ -13,6 +17,7 @@ const getAllAssignments = async () => {
     throw new Error('Failed to retrieve assignments');
   }
 };
+
 
 // Function to add an assignment
 const addAssignment = async ({ title, description, dueDate, courseId }) => {

@@ -1,12 +1,19 @@
 const express = require('express');
 const router = express.Router();
-const authenticateToken = require('../middleware/authMiddleware');
-const authorizeRoles = require('../middleware/roleMiddleware');
 const StudentHandlers = require('../handlers/studentHandlers');
 
-router.get('/', authenticateToken, authorizeRoles(['student', 'admin', 'parent']), StudentHandlers.getAllStudents);
-router.post('/', authenticateToken, authorizeRoles(['admin']), StudentHandlers.addStudent);
-router.delete('/:studentId', authenticateToken, authorizeRoles(['admin']), StudentHandlers.deleteStudent);
-router.put('/:studentId', authenticateToken, authorizeRoles(['admin', 'parent']), StudentHandlers.updateStudent);
+function checkAuthenticated(req, res, next) {
+    if (req.isAuthenticated()) {
+      return next()
+    }
+  
+    res.redirect('/')
+  }
+
+router.get('/', checkAuthenticated, StudentHandlers.getAllStudents);
+router.post('/', checkAuthenticated, StudentHandlers.addStudent);
+router.delete('/:studentId', checkAuthenticated, StudentHandlers.deleteStudent);
+router.put('/:studentId', checkAuthenticated, StudentHandlers.updateStudent);
+
 
 module.exports = router;

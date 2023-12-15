@@ -10,10 +10,14 @@ const generateResultID = () => {
   return nanoid(8);
 };
 
-const getAllResults = async () => {
+const getAllResults = async (page = 1, pageSize = 8) => {
   const connection = await db.getConnection();
   try {
-    const [rows] = await connection.execute('SELECT * FROM results');
+    const offset = (page - 1) * pageSize;
+    const [rows] = await connection.execute(
+      'SELECT * FROM results LIMIT ? OFFSET ?',
+      [pageSize, offset]
+    );
     return rows;
   } catch (error) {
     console.error('Error retrieving results:', error);
@@ -22,6 +26,7 @@ const getAllResults = async () => {
     connection.release();
   }
 };
+
 
 const addResult = async ({ studentId, courseId, assignmentId, score }) => {
   const connection = await db.getConnection();

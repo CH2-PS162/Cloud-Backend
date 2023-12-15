@@ -13,7 +13,15 @@ const jwt = require('jsonwebtoken');
 const db = require('./database/db');
 const { generateTokens } = require('./handlers/authHandlers');
 
+//Routes
 const assignmentRoutes = require('./routes/assignmentRoutes');
+const courseRoutes = require('./routes/courseRoutes');
+const presenceRoutes = require('./routes/presenceRoutes');
+const resultRoutes = require('./routes/resultRoutes');
+const studentRoutes = require('./routes/studentRoutes');
+const submissionRoutes = require('./routes/submissionRoutes');
+const teacherRoutes = require('./routes/teacherRoutes');
+
 
 const initializePassport = require('./passport-config');
 initializePassport(
@@ -100,26 +108,42 @@ app.delete('/logout', (req, res) => {
   });
 });
 
-// Add route for teacher.ejs
+
 app.get('/teacher', checkAuthenticated, (req, res) => {
   const { accessToken } = generateTokens(req.user.user_id, req.user.email, req.user.name, req.user.role);
   res.render('teacher.ejs', { name: req.user.name, accessToken });
 });
 
-// Add route for student.ejs
+
 app.get('/student', checkAuthenticated, (req, res) => {
   const { accessToken } = generateTokens(req.user.user_id, req.user.email, req.user.name, req.user.role);
   res.render('student.ejs', { name: req.user.name, accessToken });
 });
 
-// Add route for parent.ejs
+
 app.get('/parent', checkAuthenticated, (req, res) => {
   const { accessToken } = generateTokens(req.user.user_id, req.user.email, req.user.name, req.user.role);
   res.render('parent.ejs', { name: req.user.name, accessToken });
 });
 
-app.use('/assignment', checkAuthenticated, assignmentRoutes);
 
+
+app.use('/admin', checkAuthenticated, (req, res) => {
+  const { accessToken } = generateTokens(req.user.user_id, req.user.email, req.user.name, req.user.role);
+  res.render('admin.ejs', { name: req.user.name, accessToken });
+})
+
+
+// ini untuk endpoint
+app.use('/assignment', checkAuthenticated, assignmentRoutes);
+app.use('/course', checkAuthenticated, courseRoutes);
+app.use('/presence', checkAuthenticated, presenceRoutes);
+app.use('/result', checkAuthenticated, resultRoutes);
+app.use('/get-student', checkAuthenticated, studentRoutes);
+app.use('/submission', checkAuthenticated, submissionRoutes);
+app.use('/get-teacher', checkAuthenticated, teacherRoutes);
+
+//dibawah ni function Middleware
 function checkAuthenticated(req, res, next) {
   if (req.isAuthenticated()) {
     return next();

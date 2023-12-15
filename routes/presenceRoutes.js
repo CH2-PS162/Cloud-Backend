@@ -1,11 +1,18 @@
 const express = require('express');
 const router = express.Router();
-const authenticateToken = require('../middleware/authMiddleware');
-const authorizeRoles = require('../middleware/roleMiddleware');
 const PresenceHandlers = require('../handlers/presenceHandlers');
 
+function checkAuthenticated(req, res, next) {
+    if (req.isAuthenticated()) {
+      return next()
+    }
+  
+    res.redirect('/')
+  }
+
 // Protected routes (require authentication and specific roles)
-router.post('/mark', authenticateToken, authorizeRoles(['admin', 'teacher', 'student']), PresenceHandlers.markPresence);
-router.get('/date/:date', authenticateToken, authorizeRoles(['admin', 'teacher', 'student', 'parent']), PresenceHandlers.getPresenceByDate);
+router.post('/mark', checkAuthenticated, PresenceHandlers.markPresence);
+router.get('/date/:date', checkAuthenticated, PresenceHandlers.getPresenceByDate);
+
 
 module.exports = router;

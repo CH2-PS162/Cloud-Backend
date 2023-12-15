@@ -1,13 +1,20 @@
 const express = require('express');
 const router = express.Router();
-const authenticateToken = require('../middleware/authMiddleware');
-const authorizeRoles = require('../middleware/roleMiddleware');
 const SubmissionHandlers = require('../handlers/submissionHandlers');
 
+function checkAuthenticated(req, res, next) {
+    if (req.isAuthenticated()) {
+      return next()
+    }
+  
+    res.redirect('/')
+  }
+
 // Protected routes (require authentication and specific roles)
-router.get('/', authenticateToken, authorizeRoles(['admin', 'teacher', 'student', 'parent']), SubmissionHandlers.getAllSubmissions);
-router.post('/', authenticateToken, authorizeRoles(['admin', 'student']), SubmissionHandlers.addSubmission);
-router.delete('/:submissionId', authenticateToken, authorizeRoles(['admin', 'student']), SubmissionHandlers.deleteSubmission);
-router.put('/:submissionId', authenticateToken, authorizeRoles(['admin', 'student']), SubmissionHandlers.updateSubmission);
+router.get('/', checkAuthenticated, SubmissionHandlers.getAllSubmissions);
+router.post('/', checkAuthenticated, SubmissionHandlers.addSubmission);
+router.delete('/:submissionId', checkAuthenticated, SubmissionHandlers.deleteSubmission);
+router.put('/:submissionId', checkAuthenticated, SubmissionHandlers.updateSubmission);
+
 
 module.exports = router;

@@ -32,9 +32,9 @@ const getAllCourses = async (req, res) => {
 
 const createCourse = async (req, res) => {
   try {
-    const { courseName, instructorId, schedule, description } = req.body;
+    const { courseName, teacherId, schedule, description } = req.body;
 
-    if (!courseName || !instructorId || !schedule || !description) {
+    if (!courseName || !teacherId || !schedule || !description) {
       return res.status(400).json({
         status: 'fail',
         message: 'Please provide all necessary course details',
@@ -43,7 +43,7 @@ const createCourse = async (req, res) => {
 
     const newCourse = await CoursesModel.createCourse({
       courseName,
-      instructorId,
+      teacherId,
       schedule,
       description,
     });
@@ -94,11 +94,11 @@ const deleteCourse = (req, res) => {
 const updateCourse = (req, res) => {
     try {
       const { courseId } = req.params;
-      const { courseName, instructorId, schedule, description } = req.body;
+      const { courseName, teacherId, schedule, description } = req.body;
   
       const updatedCourse = CoursesModel.updateCourse(courseId, {
         courseName,
-        instructorId,
+        teacherId,
         schedule,
         description,
       });

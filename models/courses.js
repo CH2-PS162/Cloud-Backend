@@ -24,7 +24,7 @@ const getAllCourses = async (page = 1, pageSize = 8) => {
 
 
 // Function to create a course
-const createCourse = async ({ courseName, instructorId, schedule, description }) => {
+const createCourse = async ({ courseName, teacherId, schedule, description }) => {
   const connection = await db.getConnection();
   try {
     // Reset the auto-increment counter to start from 1
@@ -35,12 +35,12 @@ const createCourse = async ({ courseName, instructorId, schedule, description })
 
     // Insert the new course
     await connection.execute(
-      'INSERT INTO courses (courseId, courseName, instructorId, schedule, description) VALUES (?, ?, ?, ?, ?)',
-      [courseId, courseName, instructorId, schedule, description]
+      'INSERT INTO courses (courseId, courseName, teacherId, schedule, description) VALUES (?, ?, ?, ?, ?)',
+      [courseId, courseName, teacherId, schedule, description]
     );
 
     // Return the course details
-    return { courseId, courseName, instructorId, schedule, description };
+    return { courseId, courseName, teacherId, schedule, description };
   } catch (error) {
     console.error('Error creating course:', error);
     throw new Error('Failed to create course');
@@ -64,14 +64,14 @@ const deleteCourse = async (courseId) => {
 };
 
 // Function to update a course
-const updateCourse = async (courseId, { courseName, instructorId, schedule, description }) => {
+const updateCourse = async (courseId, { courseName, teacherId, schedule, description }) => {
   const connection = await db.getConnection();
   try {
     await connection.execute(
-      'UPDATE courses SET courseName = ?, instructorId = ?, schedule = ?, description = ? WHERE courseId = ?',
-      [courseName, instructorId, schedule, description, courseId]
+      'UPDATE courses SET courseName = ?, teacherId = ?, schedule = ?, description = ? WHERE courseId = ?',
+      [courseName, teacherId, schedule, description, courseId]
     );
-    return { courseId, courseName, instructorId, schedule, description };
+    return { courseId, courseName, teacherId, schedule, description };
   } catch (error) {
     console.error('Error updating course:', error);
     throw new Error('Failed to update course');

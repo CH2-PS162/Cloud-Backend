@@ -1,14 +1,14 @@
 const mysql = require('mysql2/promise');
 
 const pool = mysql.createPool({
-  host: '34.128.114.28',
-  user: 'salsa',
-  password: 'cobacoba12345',
-  database: 'datalms',
+  host: '',
+  user: '',
+  password: '',
+  database: '',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
-});
+}); 
 
 const getConnection = async () => {
   try {
@@ -20,4 +20,4 @@ const getConnection = async () => {
   }
 };
 
-module.exports = { getConnection };
+module.exports = { getConnection };

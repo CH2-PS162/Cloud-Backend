@@ -47,7 +47,7 @@ function authenticateToken(req, res, next) {
 
 //test
 app.post('/test', (req, res) => {
-  console.log(req.body); // Log the request body to the console
+  console.log(req.body); 
   res.json({ message: 'Received', data: req.body });
 });
 
@@ -145,6 +145,8 @@ async function getUserById(id) {
   return users.length > 0 ? users[0] : null;
 }
 
-app.listen(4000, () => {
-  console.log('Server is running on port 4000');
+const PORT = process.env.PORT || 8080;
+
+var server = app.listen(PORT, function() {
+  console.log(`Server listening on port ${PORT}`);
 });

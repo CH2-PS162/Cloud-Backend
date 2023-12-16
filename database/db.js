@@ -1,14 +1,15 @@
 const mysql = require('mysql2/promise');
+require('dotenv').config();
 
 const pool = mysql.createPool({
-  host: '34.101.148.224',
-  user: 'admin',
-  password: 'toplearningq',
-  database: 'learningq',
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_DATABASE,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
-}); 
+});
 
 const getConnection = async () => {
   try {
@@ -20,4 +21,4 @@ const getConnection = async () => {
   }
 };
 
-module.exports = { getConnection };
+module.exports = { getConnection };

@@ -110,10 +110,28 @@ const updateTeacher = async (teacherId, { name, dob, address, sex, maritalStatus
   }
 };
 
+// Function to get courses for a teacher
+const getCoursesForTeacher = async (teacherId) => {
+  const connection = await db.getConnection();
+  try {
+    const [rows] = await connection.execute(
+      'SELECT * FROM teacher_courses WHERE teacherId = ?',
+      [teacherId]
+    );
+    return rows;
+  } catch (error) {
+    console.error('Error retrieving courses for the teacher:', error);
+    throw new Error('Failed to retrieve courses for the teacher');
+  } finally {
+    connection.release();
+  }
+};
+
 module.exports = {
   generateTeacherID,
   getAllTeachers,
   addTeacher,
   deleteTeacher,
   updateTeacher,
+  getCoursesForTeacher,
 };

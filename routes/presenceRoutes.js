@@ -11,13 +11,18 @@ function authenticateToken(req, res, next) {
 
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
     if (err) return res.sendStatus(403);
-    req.user = user;
+
+    req.user = {
+      studentId: user.user_id,
+      email: user.email,
+    };
+
     next();
   });
 }
 
-// Protected routes (require authentication and specific roles)
 router.post('/mark', authenticateToken, PresenceHandlers.markPresence);
+router.get('/', authenticateToken, PresenceHandlers.getAllPresence);
 router.get('/date/:date', authenticateToken, PresenceHandlers.getPresenceByDate);
 
 

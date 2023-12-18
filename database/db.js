@@ -21,4 +21,17 @@ const getConnection = async () => {
   }
 };
 
-module.exports = { getConnection };
+const execute = async (query, params) => {
+  const connection = await pool.getConnection();
+  try {
+    const [rows] = await connection.execute(query, params);
+    return rows;
+  } finally {
+    connection.release();
+  }
+};
+
+module.exports = { 
+  getConnection,
+  execute,
+};

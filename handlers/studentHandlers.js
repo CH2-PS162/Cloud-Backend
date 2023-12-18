@@ -1,5 +1,4 @@
 // studentHandlers.js
-
 const Students = require('../models/students');
 
 const getAllStudents = async (req, res) => {
@@ -55,9 +54,46 @@ const updateStudent = async (req, res) => {
   }
 };
 
+const getCoursesForStudent = async (req, res) => {
+  try {
+    const studentId = req.user.id;
+
+    if (!studentId) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'User ID is missing or undefined in the request',
+      });
+    }
+
+    const studentCourses = await Students.getCoursesForStudent(studentId);
+
+    if (!studentCourses || studentCourses.length === 0) {
+      return res.status(404).json({
+        status: 'fail',
+        message: 'No courses found for the logged-in student',
+      });
+    }
+
+    return res.status(200).json({
+      status: 'success',
+      data: {
+        courses: studentCourses,
+      },
+    });
+  } catch (error) {
+    console.error('Error retrieving courses for the student:', error);
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to retrieve courses. An internal server error occurred.',
+      error: error.message, 
+    });
+  }
+};
+
 module.exports = {
   getAllStudents,
   addStudent,
   deleteStudent,
   updateStudent,
+  getCoursesForStudent,
 };

@@ -2,40 +2,44 @@ POST  http://localhost:8080/login
 Content-Type: application/json
 
 {
+    "email" : "salsa@gmail.com",
+    "password": "salsa"
+}
+
+###
+POST  http://localhost:8080/login
+Content-Type: application/json
+
+{
     "email" : "ac@a",
     "password": "aca"
 }
 
-###
-POST http://localhost:8080/login
-Content-Type: application/json
 
-{
-    "email": "ac@a",
-    "password": "aca"
-}
 
 ###
-GET http://localhost:8080/assignment
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNFZVZXA0eDAiLCJlbWFpbCI6ImFjQGEiLCJpYXQiOjE3MDI2ODM0Mzl9.KAN7J9ZQ5Q6q8b37Mwoz5GN09ITwaN6ZS0EFm0Ea4PY
+GET http://localhost:8080/assignment/student/00WnXgyH/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMHF6UTZybzkiLCJlbWFpbCI6InNhbHNhQGdtYWlsLmNvbSIsImlhdCI6MTcwMjgwOTk4NH0.f8HuWdKKDFonbMjyucZO3FAuR0wLbHmAKZ9ULZTVoHw
 
 ###
 GET http://localhost:8080/course
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNFZVZXA0eDAiLCJlbWFpbCI6ImFjQGEiLCJpYXQiOjE3MDI2Mzc3Mjh9.FRm9s5Y3AZ9atN9pBO2bmewk5bvPaQkE0JDX6txaYvs
-
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMHF6UTZybzkiLCJlbWFpbCI6InNhbHNhQGdtYWlsLmNvbSIsImlhdCI6MTcwMjgwOTk4NH0.f8HuWdKKDFonbMjyucZO3FAuR0wLbHmAKZ9ULZTVoHw
 ###
-GET http://localhost:8080/presence/date/2023-12-07
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNFZVZXA0eDAiLCJlbWFpbCI6ImFjQGEiLCJpYXQiOjE3MDI2Mzg5NDV9.Ujf_DwDOfWAJFEzU95UnT0jA4poO_MuthPv-NB-NO1w
+GET http://localhost:8080/presence/date/2023-12-20
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNFZVZXA0eDAiLCJlbWFpbCI6ImFjQGEiLCJpYXQiOjE3MDI3OTYxODd9.HxPLAVP5GsKEHZ6ylXuDvPPC3EWulSVenHDmGwEwdlQ
 
-###
 ###
 GET http://localhost:8080/course
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNFZVZXA0eDAiLCJlbWFpbCI6ImFjQGEiLCJpYXQiOjE3MDI2MzgyODh9.eNml0DQvUzyCF67PaDCG-L-iJCb35SHOuBoSTzqyMj8
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNFZVZXA0eDAiLCJlbWFpbCI6ImFjQGEiLCJpYXQiOjE3MDI3OTYxODd9.HxPLAVP5GsKEHZ6ylXuDvPPC3EWulSVenHDmGwEwdlQ
+###
+###
+GET http://localhost:8080/get-student
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNFZVZXA0eDAiLCJlbWFpbCI6ImFjQGEiLCJpYXQiOjE3MDI3OTYxODd9.HxPLAVP5GsKEHZ6ylXuDvPPC3EWulSVenHDmGwEwdlQ
 
 ###
 GET http://localhost:8080/get-student
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNFZVZXA0eDAiLCJlbWFpbCI6ImFjQGEiLCJpYXQiOjE3MDI2MzgyODh9.eNml0DQvUzyCF67PaDCG-L-iJCb35SHOuBoSTzqyMj8
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNFZVZXA0eDAiLCJlbWFpbCI6ImFjQGEiLCJpYXQiOjE3MDI3OTYxODd9.HxPLAVP5GsKEHZ6ylXuDvPPC3EWulSVenHDmGwEwdlQ
 
 {
     "studentId": "gEaUjV3Q",

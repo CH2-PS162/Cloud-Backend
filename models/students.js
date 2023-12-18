@@ -28,33 +28,33 @@ const addStudent = async ({ studentName, email, age, courses = [] }) => {
   const connection = await db.getConnection();
 
   try {
-    const studentId = generateStudentID();
-    console.log('Generated Student ID:', studentId);
-
     await connection.beginTransaction();
 
-    const [studentInsertResult] = await connection.execute(
-      'INSERT INTO students (studentId, studentName, email, age) VALUES (?, ?, ?, ?)',
-      [studentId, studentName, email, age]
-    );
-    console.log('Student Added:', { studentId, studentName, email, age });
+    // Check if the studentName exists in the users table
+    const [matchingUser] = await connection.execute('SELECT * FROM users WHERE name = ?', [studentName]);
 
-    // Insert courses for the student into the student_courses table
-    for (const courseId of courses) {
-      // Check if the courseId exists in the courses table
-      const [course] = await connection.execute('SELECT * FROM courses WHERE courseId = ?', [courseId]);
+    if (matchingUser.length > 0) {
+      const studentId = matchingUser[0].user_id;
+      console.log('Matching user found. Setting studentId:', studentId);
+      
+      // Check if the studentId already exists in the students table
+      const [existingStudent] = await connection.execute('SELECT * FROM students WHERE studentId = ?', [studentId]);
 
-      if (course.length > 0) {
-        // If the course exists, insert into the student_courses table
+      if (existingStudent.length === 0) {
+        // If the studentId doesn't exist, proceed with the insertion
         await connection.execute(
-          'INSERT INTO student_courses (studentId, courseId) VALUES (?, ?)',
-          [studentId, courseId]
+          'INSERT INTO students (studentId, studentName, email, age) VALUES (?, ?, ?, ?)',
+          [studentId, studentName, email, age]
         );
-        console.log('Association Added:', { studentId, courseId });
+
+        console.log('Student Added:', { studentId, studentName, email, age });
       } else {
-        // If the course doesn't exist, you might want to handle this case based on your requirements
-        console.error(`Course with courseId ${courseId} does not exist`);
+        // If the studentId already exists
+        throw new Error('Duplicate entry for studentId');
       }
+    } else {
+      // Handle the case where there is no matching user
+      throw new Error('No matching user found');
     }
 
     await connection.commit();
@@ -68,7 +68,7 @@ const addStudent = async ({ studentName, email, age, courses = [] }) => {
     const response = {
       success: true,
       message: 'Student added successfully',
-      data: insertedStudent[0], // Return the inserted student
+      data: insertedStudent[0], 
     };
 
     return response;
@@ -79,7 +79,7 @@ const addStudent = async ({ studentName, email, age, courses = [] }) => {
     const response = {
       success: false,
       message: 'Failed to add student',
-      error: error.message, // Include the error message in the response
+      error: error.message, 
     };
 
     throw response;
@@ -87,6 +87,7 @@ const addStudent = async ({ studentName, email, age, courses = [] }) => {
     connection.release();
   }
 };
+
 
 // Function to delete a student
 const deleteStudent = async (studentId) => {
@@ -102,7 +103,7 @@ const deleteStudent = async (studentId) => {
     );
 
     if (existingStudent.length === 0) {
-      // If no student with the given studentId is found, return false
+      // If no student with the given studentId is found
       return false;
     }
 
@@ -178,10 +179,29 @@ const updateStudent = async (studentId, { studentName, email, age, courses }) =>
   }
 };
 
+// Function to get courses for a student
+const getCoursesForStudent = async (studentId) => {
+  const connection = await db.getConnection();
+  try {
+    const [rows] = await connection.execute(
+      'SELECT * FROM student_courses WHERE studentId = ?',
+      [studentId]
+    );
+    return rows;
+  } catch (error) {
+    console.error('Error retrieving courses for the student:', error);
+    throw new Error('Failed to retrieve courses for the student');
+  } finally {
+    connection.release();
+  }
+};
+
+
 module.exports = {
   generateStudentID,
   getAllStudents,
   addStudent,
   deleteStudent,
   updateStudent,
+  getCoursesForStudent,
 };

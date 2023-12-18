@@ -11,6 +11,19 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+//get all the users
+const {getAllUsers} = require('./handlers/userHandlers.js')
+app.get('/users', async (req, res) => {
+  try {
+    const users = await getAllUsers();
+    res.json(users);
+  } catch (error) {
+    console.error('Error retrieving all users:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
 //Routes
 const assignmentRoutes = require('./routes/assignmentRoutes');
 const courseRoutes = require('./routes/courseRoutes');
@@ -19,6 +32,7 @@ const resultRoutes = require('./routes/resultRoutes');
 const studentRoutes = require('./routes/studentRoutes');
 const submissionRoutes = require('./routes/submissionRoutes');
 const teacherRoutes = require('./routes/teacherRoutes');
+const parentRoutes = require('./routes/parentRoutes');
 
 // Utility Functions
 async function getUserByEmail(email) {
@@ -102,10 +116,22 @@ app.post('/register', async (req, res) => {
   }
 });
 
+app.get('/me', authenticateToken, async (req, res) => {
+  try {
+      const user = await getUserById(req.user.user_id);
+      if (user) {
+          res.json(user);
+      } else {
+          res.status(404).json({ message: 'User not found' });
+      }
+  } catch (error) {
+      res.status(500).json({ message: 'Error fetching user data', error: error.message });
+  }
+});
+
 app.get('/teacher', authenticateToken, (req, res) => {
   res.json({ message: 'Access to protected route!', user: req.user });
 });
-
 app.get('/student', authenticateToken, (req, res) => {
   res.json({ message: 'Access to protected route!', user: req.user });
 });
@@ -116,6 +142,8 @@ app.get('/parent', authenticateToken, (req, res) => {
   res.json({ message: 'Access to protected route!', user: req.user });
 });
 
+
+
 // ini untuk endpoint
 app.use('/assignment', assignmentRoutes);
 app.use('/course', courseRoutes);
@@ -124,16 +152,15 @@ app.use('/result', resultRoutes);
 app.use('/get-student', studentRoutes);
 app.use('/submission', submissionRoutes);
 app.use('/get-teacher', teacherRoutes);
+app.use('/get-parent', parentRoutes);
 
-async function getUserByEmail(email) {
+async function getUserById(id) {
   const connection = await db.getConnection();
-  const [users] = await connection.query(
-    'SELECT * FROM users WHERE email = ?',
-    [email]
-  );
+  const [users] = await connection.query('SELECT user_id, name, email FROM users WHERE user_id = ?', [id]);
   connection.release();
-  return users.length > 0 ? users[0] : null;
+  return users.length > 0 ? users[0] : null;
 }
+
 
 async function getUserById(id) {
   const connection = await db.getConnection();

@@ -39,7 +39,6 @@ const createCourse = async ({ courseName, teacherId, schedule, description }) =>
       [courseId, courseName, teacherId, schedule, description]
     );
 
-    // Return the course details
     return { courseId, courseName, teacherId, schedule, description };
   } catch (error) {
     console.error('Error creating course:', error);

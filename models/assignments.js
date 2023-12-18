@@ -100,6 +100,29 @@ const updateAssignment = async (assignmentId, { title, description, dueDate, cou
   }
 };
 
+const getAssignmentsByStudentId = async (studentId, page = 1, pageSize = 8) => {
+  try {
+    const connection = await db.getConnection();
+    const offset = (page - 1) * pageSize;
+    
+    // Fetch assignments based on the studentId
+    const [rows] = await connection.execute(
+      'SELECT a.* FROM assignments a ' +
+      'JOIN courses c ON a.courseId = c.courseId ' +
+      'JOIN student_courses sc ON c.courseId = sc.courseId ' +
+      'WHERE sc.studentId = ? ' +
+      'LIMIT ? OFFSET ?',
+      [studentId, pageSize, offset]
+    );
+
+    connection.release();
+    return rows;
+  } catch (error) {
+    console.error('Error retrieving assignments:', error);
+    throw new Error('Failed to retrieve assignments');
+  }
+};
+
 module.exports = {
   generateAssignmentID,
   getAllAssignments,
@@ -107,4 +130,5 @@ module.exports = {
   isAssignmentOverdue: isAssignmentOverdue,
   deleteAssignment,
   updateAssignment,
+  getAssignmentsByStudentId
 };

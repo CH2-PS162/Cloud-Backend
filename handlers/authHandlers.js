@@ -26,7 +26,6 @@ const login = async (req, res) => {
 
     const { accessToken, refreshToken } = generateTokens(user.user_id, user.email, user.name);
 
-    // You can send the tokens as cookies or in the response body
     res.cookie('refreshToken', refreshToken, { httpOnly: true });
     return res.status(200).json({ status: 'success', data: { accessToken } });
   } catch (error) {

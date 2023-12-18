@@ -52,7 +52,7 @@ const createCourse = async (req, res) => {
       status: 'success',
       message: 'Course created successfully',
       data: {
-        course: newCourse, // Include the newly created course in the response
+        course: newCourse, 
       },
     });
   } catch (error) {

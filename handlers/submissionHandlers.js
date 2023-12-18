@@ -25,7 +25,6 @@ const addSubmission = async (req, res) => {
     const submissionDate = new Date().toISOString();
     const isLateSubmission = assignmentOverdue && new Date(submissionDate) > new Date();
 
-    // Call the addSubmission function from Submissions module
     const newSubmission = await Submissions.addSubmission({
       studentId,
       assignmentId,
@@ -59,7 +58,6 @@ const updateSubmission = async (req, res) => {
     const { submissionId } = req.params;
     const { studentId, assignmentId, courseId, submissionText } = req.body;
     
-    // Ensure courseId is defined (you can add other validations as needed)
     if (!courseId) {
       return res.status(400).json({ message: 'Invalid request. courseId is required.' });
     }

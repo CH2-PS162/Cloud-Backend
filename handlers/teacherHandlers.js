@@ -55,9 +55,48 @@ const updateTeacher = async (req, res) => {
   }
 };
 
+// Get Teacher Courses
+const getCoursesForTeacher = async (req, res) => {
+  try {
+    console.log('Request User:', req.user); 
+    const teacherId = req.user.id;
+
+    if (!teacherId) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'User ID is missing or undefined in the request',
+      });
+    }
+
+    const teacherCourses = await Teachers.getCoursesForTeacher(teacherId);
+
+    if (!teacherCourses || teacherCourses.length === 0) {
+      return res.status(404).json({
+        status: 'fail',
+        message: 'No courses found for the logged-in teacher',
+      });
+    }
+
+    return res.status(200).json({
+      status: 'success',
+      data: {
+        courses: teacherCourses,
+      },
+    });
+  } catch (error) {
+    console.error('Error retrieving courses for the teacher:', error);
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to retrieve courses. An internal server error occurred.',
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   getAllTeachers,
   addTeacher,
   deleteTeacher,
   updateTeacher,
+  getCoursesForTeacher
 };

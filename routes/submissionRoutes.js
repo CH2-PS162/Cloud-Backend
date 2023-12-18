@@ -16,7 +16,6 @@ function authenticateToken(req, res, next) {
   });
 }
 
-// Protected routes (require authentication and specific roles)
 router.get('/', authenticateToken, SubmissionHandlers.getAllSubmissions);
 router.post('/', authenticateToken, SubmissionHandlers.addSubmission);
 router.delete('/:submissionId', authenticateToken, SubmissionHandlers.deleteSubmission);

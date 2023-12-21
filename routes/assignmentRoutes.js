@@ -16,7 +16,6 @@ function authenticateToken(req, res, next) {
   });
 }
 
-// Assignments routes with authentication and authorization
 router.get('/', authenticateToken, AssignmentHandlers.getAllAssignments);
 router.post('/', authenticateToken, AssignmentHandlers.addAssignment);
 router.delete('/:assignmentId', authenticateToken, AssignmentHandlers.deleteAssignment);

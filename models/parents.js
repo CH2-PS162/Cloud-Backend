@@ -1,24 +1,20 @@
 const db = require('../database/db');
 
-// Function to add a parent
 const addParent = async ({ parentName, email, studentId, studentName }) => {
   const connection = await db.getConnection();
 
   try {
     await connection.beginTransaction();
 
-    // Check if the parentName exists in the users table
     const [matchingUser] = await connection.execute('SELECT * FROM users WHERE name = ?', [parentName]);
 
     if (matchingUser.length > 0) {
       const parentId = matchingUser[0].user_id;
       console.log('Matching user found. Setting parentId:', parentId);
 
-      // Check if the parentId already exists in the parents table
       const [existingParent] = await connection.execute('SELECT * FROM parents WHERE parentId = ?', [parentId]);
 
       if (existingParent.length === 0) {
-        // If the parentId doesn't exist, proceed with the insertion
         await connection.execute(
           'INSERT INTO parents (parentId, parentName, email, studentId, studentName) VALUES (?, ?, ?, ?, ?)',
           [parentId, parentName, email, studentId, studentName]
@@ -26,17 +22,14 @@ const addParent = async ({ parentName, email, studentId, studentName }) => {
 
         console.log('Parent Added:', { parentId, parentName, email, studentId, studentName });
       } else {
-        // If the parentId already exists, handle it based on application logic
         throw new Error('Duplicate entry for parentId');
       }
     } else {
-      // Handle the case where there is no matching user
       throw new Error('No matching user found');
     }
 
     await connection.commit();
 
-    // Fetch the inserted parent
     const [insertedParent] = await connection.execute(
       'SELECT * FROM parents WHERE parentId = ?',
       [studentId]
@@ -65,21 +58,18 @@ const addParent = async ({ parentName, email, studentId, studentName }) => {
   }
 };
 
-// Function to delete a parent
 const deleteParent = async (parentId) => {
   const connection = await db.getConnection();
 
   try {
     await connection.beginTransaction();
 
-    // Check if the parentId exists in the parents table
     const [existingParent] = await connection.execute(
       'SELECT * FROM parents WHERE parentId = ?',
       [parentId]
     );
 
     if (existingParent.length === 0) {
-      // If no parent with the given parentId is found
       return false;
     }
 
@@ -97,14 +87,12 @@ const deleteParent = async (parentId) => {
   }
 };
 
-// Function to update a parent
 const updateParent = async (parentId, { parentName, email, studentId, studentName }) => {
   const connection = await db.getConnection();
 
   try {
     await connection.beginTransaction();
 
-    // Update parent details in the parents table
     await connection.execute(
       'UPDATE parents SET parentName = ?, email = ?, studentId = ?, studentName = ? WHERE parentId = ?',
       [parentName, email, studentId, studentName, parentId]
@@ -112,13 +100,12 @@ const updateParent = async (parentId, { parentName, email, studentId, studentNam
 
     await connection.commit();
 
-    // Fetch the updated parent
     const [updatedParent] = await connection.execute(
       'SELECT * FROM parents WHERE parentId = ?',
       [parentId]
     );
 
-    return updatedParent[0]; // Return the updated parent
+    return updatedParent[0]; 
   } catch (error) {
     await connection.rollback();
     console.error('Error updating parent:', error);
@@ -128,7 +115,6 @@ const updateParent = async (parentId, { parentName, email, studentId, studentNam
   }
 };
 
-// Function to get parent's student's courses
 const getCoursesForParent = async (parentId) => {
   const connection = await db.getConnection();
   try {

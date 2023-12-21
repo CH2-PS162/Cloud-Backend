@@ -11,7 +11,6 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-//get all the users
 const {getAllUsers} = require('./handlers/userHandlers.js')
 app.get('/users', async (req, res) => {
   try {
@@ -23,8 +22,6 @@ app.get('/users', async (req, res) => {
   }
 });
 
-
-//Routes
 const assignmentRoutes = require('./routes/assignmentRoutes');
 const courseRoutes = require('./routes/courseRoutes');
 const presenceRoutes = require('./routes/presenceRoutes');
@@ -34,7 +31,6 @@ const submissionRoutes = require('./routes/submissionRoutes');
 const teacherRoutes = require('./routes/teacherRoutes');
 const parentRoutes = require('./routes/parentRoutes');
 
-// Utility Functions
 async function getUserByEmail(email) {
   const connection = await db.getConnection();
   const [users] = await connection.query(
@@ -45,7 +41,6 @@ async function getUserByEmail(email) {
   return users.length > 0 ? users[0] : null;
 }
 
-// JWT Middleware
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];

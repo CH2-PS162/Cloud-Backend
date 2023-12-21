@@ -1,4 +1,3 @@
-// presenceHandlers.js
 
 const Presence = require('../models/presence');
 
@@ -6,9 +5,7 @@ const markPresence = async (req, res) => {
   try {
     const { studentId } = req.user || {};
 
-    // Check if studentId is defined
     if (studentId !== undefined) {
-      // Get the current date
       const currentDate = new Date().toISOString().split('T')[0];
 
       const courseId = req.body.courseId || 'defaultCourseId';
@@ -19,7 +16,6 @@ const markPresence = async (req, res) => {
         date: currentDate,
       });
 
-      // Check if presenceRecord contains the expected data
       if (presenceRecord) {
         return res.status(201).json({ message: 'Student marked as present', data: presenceRecord });
       } else {

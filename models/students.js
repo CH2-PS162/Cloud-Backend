@@ -4,7 +4,7 @@ const db = require('../database/db');
 let students = [];
 
 const generateStudentID = () => {
-  return generateStudentId(8); // Generating a unique 8-character ID using nanoid
+  return generateStudentId(8);
 };
 
 const getAllStudents = async (page = 1, pageSize = 8) => {
@@ -24,24 +24,20 @@ const getAllStudents = async (page = 1, pageSize = 8) => {
   }
 };
 
-const addStudent = async ({ studentName, email, age, courses = [] }) => {
+const addStudent = async ({ studentName, email, age = [] }) => {
   const connection = await db.getConnection();
 
   try {
     await connection.beginTransaction();
-
-    // Check if the studentName exists in the users table
     const [matchingUser] = await connection.execute('SELECT * FROM users WHERE name = ?', [studentName]);
 
     if (matchingUser.length > 0) {
       const studentId = matchingUser[0].user_id;
       console.log('Matching user found. Setting studentId:', studentId);
-      
-      // Check if the studentId already exists in the students table
+
       const [existingStudent] = await connection.execute('SELECT * FROM students WHERE studentId = ?', [studentId]);
 
       if (existingStudent.length === 0) {
-        // If the studentId doesn't exist, proceed with the insertion
         await connection.execute(
           'INSERT INTO students (studentId, studentName, email, age) VALUES (?, ?, ?, ?)',
           [studentId, studentName, email, age]
@@ -49,17 +45,14 @@ const addStudent = async ({ studentName, email, age, courses = [] }) => {
 
         console.log('Student Added:', { studentId, studentName, email, age });
       } else {
-        // If the studentId already exists
         throw new Error('Duplicate entry for studentId');
       }
     } else {
-      // Handle the case where there is no matching user
       throw new Error('No matching user found');
     }
 
     await connection.commit();
 
-    // Fetch the inserted student
     const [insertedStudent] = await connection.execute(
       'SELECT * FROM students WHERE studentId = ?',
       [studentId]
@@ -88,29 +81,23 @@ const addStudent = async ({ studentName, email, age, courses = [] }) => {
   }
 };
 
-
-// Function to delete a student
 const deleteStudent = async (studentId) => {
   const connection = await db.getConnection();
 
   try {
     await connection.beginTransaction();
 
-    // Check if the studentId exists in the students table
     const [existingStudent] = await connection.execute(
       'SELECT * FROM students WHERE studentId = ?',
       [studentId]
     );
 
     if (existingStudent.length === 0) {
-      // If no student with the given studentId is found
       return false;
     }
 
-    // Delete associations from the student_courses table
     await connection.execute('DELETE FROM student_courses WHERE studentId = ?', [studentId]);
 
-    // Now that associated records are deleted, delete the student from the students table
     const [deletedStudent] = await connection.execute(
       'DELETE FROM students WHERE studentId = ?',
       [studentId]
@@ -118,7 +105,7 @@ const deleteStudent = async (studentId) => {
 
     await connection.commit();
 
-    return deletedStudent.affectedRows > 0; // Return true if the student was successfully deleted
+    return deletedStudent.affectedRows > 0; 
   } catch (error) {
     await connection.rollback();
     console.error('Error deleting student:', error);
@@ -128,48 +115,40 @@ const deleteStudent = async (studentId) => {
   }
 };
 
-// Function to update a student
 const updateStudent = async (studentId, { studentName, email, age, courses }) => {
   const connection = await db.getConnection();
 
   try {
     await connection.beginTransaction();
 
-    // Update student details in the students table
     await connection.execute(
       'UPDATE students SET studentName = ?, email = ?, age = ? WHERE studentId = ?',
       [studentName, email, age, studentId]
     );
 
-    // Clear existing courses for the student in the student_courses table
     await connection.execute('DELETE FROM student_courses WHERE studentId = ?', [studentId]);
 
-    // Insert updated courses for the student into the student_courses table
     for (const courseId of courses) {
-      // Check if the courseId exists in the courses table
       const [course] = await connection.execute('SELECT * FROM courses WHERE courseId = ?', [courseId]);
 
       if (course.length > 0) {
-        // If the course exists, insert into the student_courses table
         await connection.execute(
           'INSERT INTO student_courses (studentId, courseId) VALUES (?, ?)',
           [studentId, courseId]
         );
       } else {
-        // If the course doesn't exist, you might want to handle this case based on your requirements
         console.error(`Course with courseId ${courseId} does not exist`);
       }
     }
 
     await connection.commit();
 
-    // Fetch the updated student
     const [updatedStudent] = await connection.execute(
       'SELECT * FROM students WHERE studentId = ?',
       [studentId]
     );
 
-    return updatedStudent[0]; // Return the updated student
+    return updatedStudent[0]; 
   } catch (error) {
     await connection.rollback();
     console.error('Error updating student:', error);
@@ -179,7 +158,6 @@ const updateStudent = async (studentId, { studentName, email, age, courses }) =>
   }
 };
 
-// Function to get courses for a student
 const getCoursesForStudent = async (studentId) => {
   const connection = await db.getConnection();
   try {

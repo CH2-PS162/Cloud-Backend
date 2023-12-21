@@ -1,11 +1,8 @@
-// results.js (in models directory)
-
 const db = require('../database/db');
 const { nanoid } = require('nanoid');
 
 let results = [];
 
-// Function to generate a result ID
 const generateResultID = () => {
   return nanoid(8);
 };

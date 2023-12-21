@@ -31,7 +31,7 @@ function authenticateToken(req, res, next) {
 
 router.get('/', TeacherHandlers.getAllTeachers);
 router.get('/courses', authenticateToken, TeacherHandlers.getCoursesForTeacher);
-router.post('/', authenticateToken, TeacherHandlers.addTeacher);
+router.post('/', TeacherHandlers.addTeacher);
 router.delete('/:teacherId', authenticateToken, TeacherHandlers.deleteTeacher);
 router.put('/:teacherId', authenticateToken, TeacherHandlers.updateTeacher);
 

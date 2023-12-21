@@ -32,7 +32,7 @@ function authenticateToken(req, res, next) {
 // Define GET request handler for /courses/
 router.get('/', authenticateToken, CourseHandlers.getAllCourses);
 // Protected routes (require authentication and specific roles)
-router.post('/', authenticateToken, CourseHandlers.createCourse); // Create course
+router.post('/', CourseHandlers.createCourse); // Create course
 router.delete('/:courseId', authenticateToken, CourseHandlers.deleteCourse); // Delete course
 router.put('/:courseId', authenticateToken, CourseHandlers.updateCourse); // Update course
 

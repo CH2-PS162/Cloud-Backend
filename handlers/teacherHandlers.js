@@ -1,5 +1,3 @@
-// teacherHandlers.js
-
 const Teachers = require('../models/teachers');
 
 const getAllTeachers = async (req, res) => {
@@ -55,7 +53,6 @@ const updateTeacher = async (req, res) => {
   }
 };
 
-// Get Teacher Courses
 const getCoursesForTeacher = async (req, res) => {
   try {
     console.log('Request User:', req.user); 

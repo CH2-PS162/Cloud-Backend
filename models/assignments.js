@@ -1,7 +1,6 @@
 const { nanoid: generateAssignmentID } = require('nanoid');
 const db = require('../database/db');
 
-// Function to get all assignments
 const getAllAssignments = async (page = 1, pageSize = 8) => {
   try {
     const connection = await db.getConnection();

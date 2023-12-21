@@ -1,7 +1,6 @@
 const { nanoid: generateTeacherID } = require('nanoid');
 const db = require('../database/db');
 
-// Function to get all teachers
 const getAllTeachers = async (page = 1, pageSize = 8) => {
   const connection = await db.getConnection();
   try {
@@ -22,45 +21,77 @@ const getAllTeachers = async (page = 1, pageSize = 8) => {
 // Function to add teachers
 const addTeacher = async ({ name, dob, address, sex, maritalStatus, yearsofWork, courses, description }) => {
   const connection = await db.getConnection();
+
   try {
-    const teacherId = generateTeacherID();
+    await connection.beginTransaction();
 
-    // Handle undefined or null values
-    const params = [teacherId, name || null, dob || null, address || null, sex || null, maritalStatus || null, yearsofWork || null, description || null];
+    const [matchingUser] = await connection.execute('SELECT * FROM users WHERE name = ?', [name]);
 
-    // Insert teacher into the teachers table
-    await connection.execute(
-      'INSERT INTO teachers (teacherId, name, dob, address, sex, maritalStatus, yearsofWork, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      params
-    );
+    if (matchingUser.length > 0) {
+      const teacherId = matchingUser[0].user_id;
+      console.log('Matching user found. Setting teacherId:', teacherId);
+      const [existingTeacher] = await connection.execute('SELECT * FROM teachers WHERE teacherId = ?', [teacherId]);
 
-    // Insert associations into the teacher_courses table
-    for (const courseId of courses) {
-      await connection.execute(
-        'INSERT INTO teacher_courses (teacherId, courseId) VALUES (?, ?)',
-        [teacherId, courseId]
-      );
+      if (existingTeacher.length === 0) {
+        await connection.execute(
+          'INSERT INTO teachers (teacherId, name, dob, address, sex, maritalStatus, yearsofWork, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+          [teacherId, name, dob || null, address || null, sex || null, maritalStatus || null, yearsofWork || null, description || null]
+        );
+
+        for (const courseId of courses) {
+          await connection.execute(
+            'INSERT INTO teacher_courses (teacherId, courseId) VALUES (?, ?)',
+            [teacherId, courseId]
+          );
+        }
+
+        console.log('Teacher Added:', { teacherId, name, dob, address, sex, maritalStatus, yearsofWork, courses, description });
+      } else {
+
+        throw new Error('Duplicate entry for teacherId');
+      }
+    } else {
+
+      throw new Error('No matching user found');
     }
 
-    return { teacherId, name, dob, address, sex, maritalStatus, yearsofWork, courses, description };
+    await connection.commit();
+
+    const [insertedTeacher] = await connection.execute(
+      'SELECT * FROM teachers WHERE teacherId = ?',
+      [teacherId]
+    );
+
+    const response = {
+      success: true,
+      message: 'Teacher added successfully',
+      data: insertedTeacher[0],
+    };
+
+    return response;
   } catch (error) {
+    await connection.rollback();
     console.error('Error adding teacher:', error);
-    throw new Error('Failed to add teacher');
+
+    const response = {
+      success: false,
+      message: 'Failed to add teacher',
+      error: error.message,
+    };
+
+    throw response;
   } finally {
     connection.release();
   }
 };
 
-// Function to delete teacher
 const deleteTeacher = async (teacherId) => {
   const connection = await db.getConnection();
   try {
     await connection.beginTransaction();
 
-    // Delete associations from the teacher_courses table
     await connection.execute('DELETE FROM teacher_courses WHERE teacherId = ?', [teacherId]);
 
-    // Delete the teacher from the teachers table
     const [result] = await connection.execute('DELETE FROM teachers WHERE teacherId = ?', [teacherId]);
 
     await connection.commit();
@@ -75,22 +106,18 @@ const deleteTeacher = async (teacherId) => {
   }
 };
 
-// Function to update teacher
 const updateTeacher = async (teacherId, { name, dob, address, sex, maritalStatus, yearsofWork, courses, description }) => {
   const connection = await db.getConnection();
   try {
     await connection.beginTransaction();
 
-    // Update teacher details in the teachers table
     await connection.execute(
       'UPDATE teachers SET name = ?, dob = ?, address = ?, sex = ?, maritalStatus = ?, yearsofWork = ?, description = ? WHERE teacherId = ?',
       [name, dob, address, sex, maritalStatus, yearsofWork, description, teacherId]
     );
 
-    // Clear existing associations for the teacher in the teacher_courses table
     await connection.execute('DELETE FROM teacher_courses WHERE teacherId = ?', [teacherId]);
 
-    // Insert updated associations into the teacher_courses table
     for (const courseId of courses) {
       await connection.execute(
         'INSERT INTO teacher_courses (teacherId, courseId) VALUES (?, ?)',
@@ -110,7 +137,6 @@ const updateTeacher = async (teacherId, { name, dob, address, sex, maritalStatus
   }
 };
 
-// Function to get courses for a teacher
 const getCoursesForTeacher = async (teacherId) => {
   const connection = await db.getConnection();
   try {

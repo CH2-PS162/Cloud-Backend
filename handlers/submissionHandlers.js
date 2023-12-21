@@ -1,5 +1,3 @@
-// submissionHandlers.js
-
 const Assignments = require('../models/assignments');
 const Submissions = require('../models/submissions');
 
@@ -19,7 +17,6 @@ const addSubmission = async (req, res) => {
   try {
     const { studentId, assignmentId, courseId, submissionText } = req.body;
 
-    // Use isAssignmentOverdue from Assignments module to check if the assignment is overdue
     const assignmentOverdue = await Assignments.isAssignmentOverdue(assignmentId);
 
     const submissionDate = new Date().toISOString();

@@ -1,10 +1,7 @@
-// submissions.js (in models directory)
-
 const db = require('../database/db');
 const { isAssignmentOverdue } = require('./assignments');
 const { nanoid } = require('nanoid');
 
-// Function to generate a submission ID
 const generateSubmissionID = () => {
   return nanoid(8);
 };
@@ -28,7 +25,6 @@ const addSubmission = async ({ studentId, assignmentId, courseId, submissionText
 
   const connection = await db.getConnection();
   try {
-    // Insert the new submission into the submissions table
     const submissionId = generateSubmissionID();
     const [result] = await connection.execute(
       'INSERT INTO submissions (submissionId, studentId, assignmentId, courseId, submissionText, submissionDate, isLate) VALUES (?, ?, ?, ?, ?, ?, ?)',
@@ -72,7 +68,6 @@ const deleteSubmission = async (submissionId) => {
 const updateSubmission = async (submissionId, { studentId, assignmentId, courseId, submissionText }) => {
   const connection = await db.getConnection();
   try {
-    // Use isAssignmentOverdue from Assignments module to check if the assignment is overdue
     const isLateSubmission = await isAssignmentOverdue(assignmentId);
 
     const [result] = await connection.execute(
